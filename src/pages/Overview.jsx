@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import {
   AreaChart, Area, LineChart, Line,
   XAxis, YAxis, Tooltip,
@@ -399,6 +399,7 @@ function CapLimitBanner({ capLimit }) {
 export default function PageOverview({
   service, setPage, role = "admin",
   initialFilter = null, filterType = null,
+  globalFilters = null,
   capLimit = null,
 }) {
   const isAdmin = role === "admin";
@@ -410,6 +411,22 @@ export default function PageOverview({
   const open  = (title) => setModal(title);
   const close = () => setModal(null);
   const handleBarFilter = useCallback((name) => setSelectedBar(name), []);
+
+  useEffect(() => {
+    if (!globalFilters) return;
+
+    const serviceFilter = (globalFilters.service || "").trim();
+    setSelectedBar(serviceFilter || null);
+
+    const from = globalFilters.fromDate ? new Date(`${globalFilters.fromDate}T00:00:00`) : null;
+    const to = globalFilters.toDate ? new Date(`${globalFilters.toDate}T00:00:00`) : null;
+    if (from && to && !Number.isNaN(from.getTime()) && !Number.isNaN(to.getTime())) {
+      const diffDays = Math.max(1, Math.floor((to - from) / 86400000) + 1);
+      if (diffDays <= 1) setRangeTab("1d");
+      else if (diffDays <= 7) setRangeTab("7d");
+      else setRangeTab("30d");
+    }
+  }, [globalFilters]);
 
   // Real filter scale using trafficService
   const partnerData = useMemo(() => buildPartnerData(1, ALL_PARTNERS), []);

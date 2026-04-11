@@ -923,7 +923,7 @@ export default function IPManager({ role }) {
   );
 
   return (
-    <div className="page-main ipm-page">
+    <div className="ipm-page">
       <div className="ipm-page-hd">
         <div className="ipm-page-hd-left">
           <div className="ipm-page-icon">🌐</div>

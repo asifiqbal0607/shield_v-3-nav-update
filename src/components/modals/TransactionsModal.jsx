@@ -230,6 +230,12 @@ export default function TransactionsModal({
   const totalPages = Math.ceil(filtered.length / pageSize);
   const paged = filtered.slice((page - 1) * pageSize, page * pageSize);
 
+  function shortUniqId(v) {
+    const s = String(v ?? "");
+    if (s.length <= 18) return s;
+    return `${s.slice(0, 10)}...${s.slice(-6)}`;
+  }
+
   const pageNums = [];
   if (totalPages <= 7) {
     for (let i = 1; i <= totalPages; i++) pageNums.push(i);
@@ -344,7 +350,7 @@ export default function TransactionsModal({
               <tr className="txn-thead-row">
                 {[
                   "Sr.",
-                  "ID",
+                  "UNIQID",
                   "Time",
                   "Network",
                   "APK",
@@ -370,7 +376,7 @@ export default function TransactionsModal({
                 <tr key={r.id} className="txn-tr">
                   <td className="txn-td-sr">{(page - 1) * pageSize + i + 1}</td>
                   <td className="txn-td-id">
-                    <CopyCell value={r.id} display={r.id} />
+                    <CopyCell value={r.id} display={shortUniqId(r.id)} />
                   </td>
                   <td className="txn-td-time">{r.time}</td>
                   <td className="txn-td-network">

@@ -1,4 +1,3 @@
-import PageStatsPerService from "../pages/StatsPerService";
 import PageFraudCodes, { FraudDescriptionsModal } from "../pages/FraudCodes";
 import PageIPManager from "../pages/IPManager";
 import PageOverview from "../pages/Overview";
@@ -63,10 +62,10 @@ export default function PageRouter({
         setPage={setPage}
         initialFilter={pageContext?.filterName ?? null}
         filterType={pageContext?.filterType ?? null}
+        globalFilters={pageContext?.globalFilters ?? null}
         capLimit={role === "partner" ? { value: 500, period: "day", usedToday: 347 } : null}
       />
     ),
-    "stats-per-service": <PageStatsPerService role={role} />,
     reporting: <PageReporting role={role} />,
     block: <PageBlock />,
     apks: <PageAPKs role={role} />,

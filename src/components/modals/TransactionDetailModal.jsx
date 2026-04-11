@@ -1056,13 +1056,13 @@ export default function TransactionDetailModal({
   const ADVANCED_TABS = [
     {
       key: "device",
-      label: "Device Verification",
+      label: "Device",
       dot: "tdd-dot-violet",
       badge: deviceFailCount > 0 ? `${deviceFailCount} failed` : null,
     },
     {
       key: "events",
-      label: "Events Timeline",
+      label: "Events",
       dot: totalFails > 0 ? "tdd-dot-red" : "tdd-dot-green",
       badge: totalFails > 0 ? `${totalFails} failed` : null,
     },
@@ -1149,7 +1149,9 @@ export default function TransactionDetailModal({
         {/* ── Advanced options bar (below banner, separate row) ── */}
         {showAdvanced && activeTab === "info" && (
           <div className="tdd-advanced-bar">
-            {/* ── View tabs ── */}
+            
+            <div className="tdd-advanced-scroll">
+{/* ── View tabs ── */}
             {ADVANCED_TABS.map((t) => (
               <button
                 key={t.key}
@@ -1179,38 +1181,40 @@ export default function TransactionDetailModal({
             <div className="tdd-adv-bar-divider" />
 
             {/* ── Action buttons — same style as view tabs ── */}
-            <button
-              type="button"
-              className="tdd-adv-opt-btn"
-              onClick={() => { setShowAdvanced(false); onUserIp && onUserIp(d.userIp); }}
-            >
-              <span className="tdd-adv-opt-dot" style={{ background: "#6366f1" }} />
-              User IP
-            </button>
-
-            {!isPartner && (
               <button
                 type="button"
                 className="tdd-adv-opt-btn"
-                onClick={() => setShowAdvanced(false)}
+                onClick={() => { setShowAdvanced(false); onUserIp && onUserIp(d.userIp); }}
               >
-                <span className="tdd-adv-opt-dot" style={{ background: "#0891b2" }} />
-                Anomaly Analysis
+                <span className="tdd-adv-opt-dot" style={{ background: "#6366f1" }} />
+              IP
               </button>
-            )}
 
-            {!isPartner && (
-              <button
-                type="button"
-                className={`tdd-adv-opt-btn${showRaw ? " tdd-adv-opt-active" : ""}`}
-                onClick={() => { setShowAdvanced(false); setShowRaw((v) => !v); }}
-              >
-                <span className="tdd-adv-opt-dot" style={{ background: "#d97706" }} />
-                Raw Data{showRaw ? " ✓" : ""}
-              </button>
-            )}
+              {!isPartner && (
+                <button
+                  type="button"
+                  className="tdd-adv-opt-btn"
+                  onClick={() => setShowAdvanced(false)}
+                >
+                  <span className="tdd-adv-opt-dot" style={{ background: "#0891b2" }} />
+                Anomaly
+                </button>
+              )}
 
-            <button
+              {!isPartner && (
+                <button
+                  type="button"
+                  className={`tdd-adv-opt-btn${showRaw ? " tdd-adv-opt-active" : ""}`}
+                  onClick={() => { setShowAdvanced(false); setShowRaw((v) => !v); }}
+                >
+                  <span className="tdd-adv-opt-dot" style={{ background: "#d97706" }} />
+                Raw{showRaw ? " ✓" : ""}
+                </button>
+              )}
+
+            </div>
+
+<button
               type="button"
               className="tdd-adv-collapse-btn"
               onClick={() => setShowAdvanced(false)}
