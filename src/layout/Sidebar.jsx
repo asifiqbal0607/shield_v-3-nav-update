@@ -110,13 +110,22 @@ export default function Sidebar({ role, page, setPage }) {
     });
   }
 
+  function openOnHover(key) {
+    if (pinned) return;
+    setOpenKey(key);
+  }
+
+  function handleMouseLeave() {
+    if (!pinned) setOpenKey(null);
+  }
+
   function isGroupActive(g) {
     return g.items.some((i) => i.key === page);
   }
 
   return (
     <>
-      {openKey && (
+      {openKey && pinned && (
         <div
           className="sb-backdrop"
           onClick={() => {
@@ -126,7 +135,7 @@ export default function Sidebar({ role, page, setPage }) {
         />
       )}
 
-      <div className="sb-root">
+      <div className="sb-root" onMouseLeave={handleMouseLeave}>
         {/* ── 52px icon strip ── */}
         <div className="sb-strip">
           <div className="sb-strip-top">
@@ -139,6 +148,8 @@ export default function Sidebar({ role, page, setPage }) {
                   title={label}
                   className={`sb-icon-btn${active ? " active" : ""}`}
                   onClick={() => toggle(key)}
+                  onMouseEnter={() => openOnHover(key)}
+                  onFocus={() => openOnHover(key)}
                 >
                   <Icon size={18} strokeWidth={1.8} />
                 </button>
@@ -153,6 +164,8 @@ export default function Sidebar({ role, page, setPage }) {
                 title={BOTTOM_GROUP.label}
                 className={`sb-icon-btn${isGroupActive(BOTTOM_GROUP) || openKey === BOTTOM_GROUP.key ? " active" : ""}`}
                 onClick={() => toggle(BOTTOM_GROUP.key)}
+                onMouseEnter={() => openOnHover(BOTTOM_GROUP.key)}
+                onFocus={() => openOnHover(BOTTOM_GROUP.key)}
               >
                 <BOTTOM_GROUP.Icon size={18} strokeWidth={1.8} />
               </button>

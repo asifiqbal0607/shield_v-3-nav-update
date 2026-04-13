@@ -22231,11 +22231,7 @@ table tbody td {
   border: 1.5px solid #0f172a;
   pointer-events: none;
 }
-.tnav-notif-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9990;
-}
+/* tnav-notif-overlay removed — click-outside handled by useEffect in TopNav */
 .tnav-notif-dropdown {
   position: absolute;
   top: calc(100% + 10px);

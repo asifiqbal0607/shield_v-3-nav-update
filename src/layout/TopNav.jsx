@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { CopyIcon, SettingsIcon, LogOutIcon } from "../components/ui/Icons";
 import { useTickets } from "../context/TicketContext";
 
@@ -85,6 +85,19 @@ export default function TopNav({ role, setPage, onLogout }) {
   const [stagingCopied, setStagingCopied] = useState(false);
   const [stagingHover,  setStagingHover]  = useState(false);
   const [notifOpen,     setNotifOpen]     = useState(false);
+  const notifWrapRef = useRef(null);
+
+  // Close notification dropdown on outside click
+  useEffect(() => {
+    if (!notifOpen) return;
+    function handleOutside(e) {
+      if (notifWrapRef.current && !notifWrapRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutside);
+    return () => document.removeEventListener("mousedown", handleOutside);
+  }, [notifOpen]);
 
   const isPartner    = role === "partner";
   const { getUnreadCount } = useTickets();
@@ -140,7 +153,7 @@ export default function TopNav({ role, setPage, onLogout }) {
 
         {/* Bell — admin only */}
         {!isPartner && (
-          <div className="topbar-notif-wrap">
+          <div className="topbar-notif-wrap" ref={notifWrapRef}>
             <button type="button" className="topbar-icon-btn"
               onClick={() => setNotifOpen((v) => !v)}>
               🔔
@@ -149,9 +162,7 @@ export default function TopNav({ role, setPage, onLogout }) {
               <span className="topbar-notif-badge">{UNREAD_COUNT}</span>
             )}
             {notifOpen && (
-              <>
-                <div className="tnav-notif-overlay" onClick={() => setNotifOpen(false)} />
-                <div className="tnav-notif-dropdown topbar-notif-dropdown">
+              <div className="tnav-notif-dropdown topbar-notif-dropdown">
                   <div className="tnav-notif-hd">
                     <span className="tnav-notif-hd-title">Partner Tickets</span>
                     <span className="tnav-notif-hd-count">{UNREAD_COUNT} new</span>
@@ -178,7 +189,6 @@ export default function TopNav({ role, setPage, onLogout }) {
                     View all tickets →
                   </button>
                 </div>
-              </>
             )}
           </div>
         )}
