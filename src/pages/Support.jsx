@@ -332,6 +332,247 @@ function StatusPill({ status }) {
 }
 
 // ── ReportIssueModal — exported for TransactionsModal ─────────────────────────
+// Shield AI chatbot
+const CHATBOT_QUICK_PROMPTS = [
+  "Why was my transaction blocked?",
+  "How do I report overblocking?",
+  "Shield JS is not loading",
+  "What details should I share?",
+];
+
+const CHATBOT_INTENTS = [
+  {
+    match: ["blocked", "block", "why", "transaction", "uniqid", "uniqueid"],
+    title: "Blocked transaction help",
+    reply:
+      "Please share the transaction ID or MCP uniqid. I can check the local Shield records and explain the decision, reason codes, network, APK, IP, and next action.",
+    action: "If the test was made by a real user on a real device, log a Blocked During Testing ticket with tester name, device, landing page URL, and whether remote-control software was used.",
+  },
+  {
+    match: ["overblocking", "false positive", "legitimate", "valid users"],
+    title: "Overblocking investigation",
+    reply:
+      "For overblocking, include the affected network, APK/service, country, time range, sample uniqids, and expected conversion flow. I will suggest a high-priority ticket if real users are impacted.",
+    action: "Use Log New Issue and choose OverBlocking so support can review the rule hit rate and affected traffic segment.",
+  },
+  {
+    match: ["integration", "javascript", "js", "sdk", "not firing", "not loading", "ios", "safari"],
+    title: "Integration troubleshooting",
+    reply:
+      "Check that Shield JS is loaded before the protected action, the partner key is correct, browser blockers are not preventing the script, and the token is sent with the final request.",
+    action: "If it still fails, open an Integration Issue ticket with browser/device, page URL, console errors, and a sample request payload.",
+  },
+  {
+    match: ["api", "500", "error", "response", "timeout", "endpoint"],
+    title: "API response issue",
+    reply:
+      "For API errors, capture the endpoint, timestamp, response code, request ID, partner ID, and whether the failure is intermittent or constant.",
+    action: "Choose Error In Response and mark Critical if production traffic is blocked.",
+  },
+  {
+    match: ["data", "report", "mismatch", "conversion", "count", "stats"],
+    title: "Data discrepancy",
+    reply:
+      "Data mismatches are usually investigated by comparing timezone, reporting window, service/APK filters, conversion status, and duplicate transaction handling.",
+    action: "Open a Data Discrepancy ticket with both Shield numbers and your internal numbers for the same exact time window.",
+  },
+  {
+    match: ["priority", "sla", "response", "urgent", "critical"],
+    title: "Priority guidance",
+    reply:
+      "Use Critical for production outages or valid traffic being blocked at scale, High for active integration blockers, Medium for reporting mismatches, and Low for questions or cleanup.",
+    action: "The support team target shown in this portal is within 2 business hours.",
+  },
+];
+
+function extractLookupCandidate(text) {
+  const directParam = String(text || "").match(/(?:uniqid|uniqueid|mcpuniqid|mcp_uniqid)=([^&\s]+)/i);
+  if (directParam) return directParam[1];
+  const token = String(text || "")
+    .split(/\s+/)
+    .map((part) => part.replace(/[.,;:!?()[\]{}"']/g, ""))
+    .find((part) => /^(?:UUID-|TKT-|ssk|[a-z0-9]{18,})/i.test(part));
+  return token || "";
+}
+
+function buildTransactionReply(message) {
+  const candidate = extractLookupCandidate(message);
+  const normalized = normalizeLookupId(candidate);
+  if (!normalized) return null;
+
+  const row = transactionRows.find((t) => normalizeLookupId(t.id) === normalized);
+  if (!row) {
+    return {
+      title: "I could not find that ID",
+      text:
+        "I could not find that transaction in the current Shield sample data. Please check the uniqid and share the service/APK, network, timestamp, and country so support can trace it.",
+      next: "If this is from live partner traffic, log a ticket and include the full raw uniqid.",
+    };
+  }
+
+  const isBlocked = row.status === "Block";
+  const reasons = row.reasons?.length ? row.reasons.join(", ") : "no block reason codes";
+  return {
+    title: isBlocked ? "This transaction was blocked" : "This transaction was not blocked",
+    text: `${row.id} shows status ${row.status}, score ${row.score ?? "-"}, network ${row.network || "-"}, APK ${row.apk || "-"}, and reason codes: ${reasons}.`,
+    next: isBlocked
+      ? `The first matched reason is ${row.reasons?.[0] || "not available"}. Ask for review if the device was a verified human test or valid production user.`
+      : "No block action is present in the current records. If the partner still saw a failure, compare the API response and landing-page event logs.",
+  };
+}
+
+function createChatbotReply(message, partnerTickets) {
+  const trimmed = message.trim();
+  const lower = trimmed.toLowerCase();
+  const transactionReply = buildTransactionReply(trimmed);
+
+  if (transactionReply) return transactionReply;
+
+  if (lower === "why was my transaction blocked?") {
+    return {
+      title: "Share the transaction ID",
+      text: "Please share the transaction ID or MCP uniqid.",
+      next: "Once you send it, I will check the Shield decision, score, reason codes, network, APK, and recommended next action.",
+    };
+  }
+
+  if (lower.includes("ticket") || lower.includes("status")) {
+    const openTickets = partnerTickets.filter((t) => t.status !== "resolved");
+    const latest = [...partnerTickets].sort((a, b) => b.created - a.created)[0];
+    return {
+      title: "Ticket status summary",
+      text: `You currently have ${openTickets.length} open ticket${openTickets.length === 1 ? "" : "s"} in this portal.${latest ? ` Latest: ${latest.id} - ${latest.subject} (${STATUS_META[latest.status]?.label || latest.status}).` : ""}`,
+      next: "Use the Support Tickets tab to filter by pending, in progress, or resolved tickets.",
+    };
+  }
+
+  const intent = CHATBOT_INTENTS.find((item) => item.match.some((word) => lower.includes(word)));
+  if (intent) {
+    return {
+      title: intent.title,
+      text: intent.reply,
+      next: intent.action,
+    };
+  }
+
+  return {
+    title: "I can help with Shield support",
+    text:
+      "Ask me about blocked transactions, overblocking, integration issues, API errors, data mismatches, ticket status, or what evidence to share with support.",
+    next: "For the fastest answer, include a transaction ID, MCP uniqid, network, APK/service, and timestamp.",
+  };
+}
+
+function ShieldAIChatbot({ tickets, onNew }) {
+  const [messages, setMessages] = useState([
+    {
+      id: "bot-welcome",
+      sender: "bot",
+      title: "Shield AI Support",
+      text:
+        "Hi, I can help partners understand block decisions, troubleshoot integration issues, and prepare cleaner support tickets.",
+      next: "Share a question or paste a transaction ID to begin.",
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  function sendMessage(text = input) {
+    const clean = text.trim();
+    if (!clean || isTyping) return;
+
+    setMessages((prev) => [
+      ...prev,
+      {
+        id: `user-${Date.now()}`,
+        sender: "user",
+        text: clean,
+      },
+    ]);
+    setInput("");
+    setIsTyping(true);
+
+    window.setTimeout(() => {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `bot-${Date.now()}`,
+          sender: "bot",
+          ...createChatbotReply(clean, tickets),
+        },
+      ]);
+      setIsTyping(false);
+    }, 420);
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    sendMessage();
+  }
+
+  return (
+    <div className="spt-ai-wrap">
+      <div className="spt-ai-panel">
+        <div className="spt-ai-header">
+          <div className="spt-ai-avatar">AI</div>
+          <div>
+            <h2 className="spt-ai-title">Shield AI Chat Bot</h2>
+            <p className="spt-ai-sub">Partner support assistant for Shield queries</p>
+          </div>
+        </div>
+
+        <div className="spt-ai-messages" aria-live="polite">
+          {messages.map((msg) => (
+            <div key={msg.id} className={`spt-ai-msg spt-ai-msg--${msg.sender}`}>
+              {msg.sender === "bot" && msg.title && <div className="spt-ai-msg-title">{msg.title}</div>}
+              <div className="spt-ai-msg-text">{msg.text}</div>
+              {msg.sender === "bot" && msg.next && <div className="spt-ai-msg-next">{msg.next}</div>}
+            </div>
+          ))}
+          {isTyping && (
+            <div className="spt-ai-msg spt-ai-msg--bot spt-ai-msg--typing">
+              <span />
+              <span />
+              <span />
+            </div>
+          )}
+        </div>
+
+        <div className="spt-ai-quick-row">
+          {CHATBOT_QUICK_PROMPTS.map((prompt) => (
+            <button key={prompt} type="button" onClick={() => sendMessage(prompt)}>
+              {prompt}
+            </button>
+          ))}
+        </div>
+
+        <form className="spt-ai-compose" onSubmit={handleSubmit}>
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask Shield AI about blocked traffic, integration, API errors, or ticket status"
+          />
+          <button type="submit" aria-label="Send message" disabled={!input.trim() || isTyping}>
+            <SendIcon size={15} />
+          </button>
+        </form>
+      </div>
+
+      <aside className="spt-ai-side">
+        <div className="spt-ai-side-title">Need a human review?</div>
+        <p>
+          If Shield AI identifies a production impact or missing investigation data, create a ticket with the prepared details.
+        </p>
+        <button type="button" className="spt-submit-btn spt-ai-ticket-btn" onClick={onNew}>
+          <PlusIcon size={13} />
+          Log New Issue
+        </button>
+      </aside>
+    </div>
+  );
+}
+
+// ReportIssueModal - exported for TransactionsModal
 export function ReportIssueModal({ onClose, prefillTransactionId = null, partnerName = "Partner" }) {
   const [category,    setCategory]    = useState("");
   const [subject,     setSubject]     = useState("");
@@ -851,10 +1092,19 @@ function PartnerTicketList({ tickets, onNew }) {
         >
           Why Blocked?
         </button>
+        <button
+          type="button"
+          className={`spt-main-tab${tab === "shield-ai" ? " spt-main-tab--active" : ""}`}
+          onClick={() => setTab("shield-ai")}
+        >
+          Shield AI
+        </button>
       </div>
 
       {tab === "why-blocked" ? (
         <WhyBlockedLookup />
+      ) : tab === "shield-ai" ? (
+        <ShieldAIChatbot tickets={tickets} onNew={onNew} />
       ) : (
       <>
       <div className="spt-kpi-row">

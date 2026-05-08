@@ -88,20 +88,49 @@ function StatBar({ total, clearCount, blockCount, suspectCount, onFilter }) {
 }
 
 
+async function copyToClipboard(value) {
+  const text = String(value ?? "");
+
+  if (navigator.clipboard?.writeText) {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      // Fall back for browsers that expose the API but block it in this context.
+    }
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.value = text;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.left = "-9999px";
+  textarea.style.top = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  try {
+    return document.execCommand("copy");
+  } finally {
+    document.body.removeChild(textarea);
+  }
+}
+
 function CopyCell({ value, display, className }) {
   const [copied, setCopied] = useState(false);
 
-  function handleCopy(e) {
+  async function handleCopy(e) {
     e.stopPropagation();
-    navigator.clipboard.writeText(value).then(() => {
+    const didCopy = await copyToClipboard(value);
+    if (didCopy) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1800);
-    });
+    }
   }
 
   return (
     <span
-      className={`txn-copy-cell${className ? " " + className : ""}`}
+      className={`txn-copy-cell${copied ? " copied" : ""}${className ? " " + className : ""}`}
       onClick={handleCopy}
       title={`Click to copy: ${value}`}
     >
