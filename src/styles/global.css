@@ -5937,12 +5937,12 @@ table tbody td {
   font-size: 11px;
   white-space: nowrap;
   color: var(--text-2);
-  width: 130px;
-  max-width: 130px;
+  width: 160px;
+  max-width: 160px;
 }
 
 .txn-thead-row th:nth-child(6) {
-  width: 130px;
+  width: 160px;
 }
 
 .txn-thead-row th:nth-child(7) {
@@ -6048,14 +6048,12 @@ table tbody td {
 .txn-reason-overlay {
   position: fixed;
   inset: 0;
-  z-index: 50;
+  z-index: 1200;
 }
 
 .txn-reason-popover {
   position: fixed;
-  z-index: 9999;
-  top: var(--pop-top, 0);
-  left: var(--pop-left, 0);
+  z-index: 1201;
   background: var(--bg-card);
   border: 1px solid var(--border2);
   border-radius: var(--radius-md);
@@ -8737,31 +8735,26 @@ table tbody td {
 }
 
 .txn-copy-toast {
-  position: absolute;
-  top: 50%;
-  left: calc(100% + 8px);
-  transform: translateY(-50%);
-  background: #065f46;
-  color: #fff;
+  position: static;
+  transform: none;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  background: transparent;
+  color: #047857;
   font-size: 10px;
   font-weight: 800;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 0 2px;
+  border-radius: 0;
   white-space: nowrap;
   pointer-events: none;
   animation: dropIn 0.12s ease;
-  z-index: 200;
-  box-shadow: 0 6px 16px rgba(6, 95, 70, 0.24);
+  z-index: auto;
+  box-shadow: none;
 }
 
 .txn-copy-toast::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 100%;
-  transform: translateY(-50%);
-  border: 4px solid transparent;
-  border-right-color: #065f46;
+  content: none;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════

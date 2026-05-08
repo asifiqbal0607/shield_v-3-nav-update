@@ -191,6 +191,7 @@ function ReasonCell({ reasons }) {
                 />
                 <div
                   className="txn-reason-popover"
+                  style={{ top: pos.top, left: pos.left }}
                 >
                   {extra.map((rsn) => (
                     <span

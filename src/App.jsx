@@ -1,10 +1,30 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import AppLayout from "./layout/AppLayout";
 import PageRouter from "./routes";
 import Login from "./auth/Login";
 import Logout from "./auth/Logout";
 import { useAuth } from "./hooks/useAuth";
 import { TicketProvider } from "./context/TicketContext";
+import { ALL_PAGES } from "./components/constants/nav";
+
+const PAGE_STORAGE_KEY = "shield-active-page";
+const VALID_PAGE_KEYS = new Set([
+  ...ALL_PAGES.map((item) => item.key),
+  "onboarding",
+  "svc-onboarding",
+  "user-onboarding",
+  "users-all",
+  "users-roles",
+  "svc-registry",
+  "svc-api",
+  "svc-webhooks",
+]);
+
+function getStoredPage() {
+  if (typeof window === "undefined") return "overview";
+  const stored = window.localStorage.getItem(PAGE_STORAGE_KEY);
+  return VALID_PAGE_KEYS.has(stored) ? stored : "overview";
+}
 
 export default function App() {
   const {
@@ -19,8 +39,12 @@ export default function App() {
     handleLogoutConfirm,
   } = useAuth();
 
-  const [page, setPage] = useState("overview");
+  const [page, setPage] = useState(getStoredPage);
   const [pageContext, setPageContext] = useState(null);
+
+  useEffect(() => {
+    window.localStorage.setItem(PAGE_STORAGE_KEY, page);
+  }, [page]);
 
   const handleLoginAndRedirect = (role) => {
     handleLogin(role);
