@@ -101,8 +101,9 @@ const FRAUD_CODES = [
   { id: "MCPS-3000", label: "Replay Attack", color: "#22c55e", type: "parent", children: [] },
 ];
 
-const FRAUD_DESCRIPTIONS = {
+export const FRAUD_DESCRIPTIONS = {
   shield: [
+    { code: "MCPS-0000", title: "Clear", description: "Transaction was cleared because no Shield block reason was matched." },
     { code: "MCPS-1000", title: "Unauthorised IP Address", description: "Request was denied because the IP address used does not fall within the approved range specified by the client." },
     { code: "MCPS-1100", title: "Failed Input Verification", description: "Failed Input Verification is used when there's a problem with verifying the information entered on MSISDN/PIN entry pages. This can happen due to various reasons, including automated processes (like bots or app controllers) or extremely fast data entry that doesn't match normal human behaviour. It's a signal that something might not be quite right with the information provided." },
     { code: "MCPS-1200", title: "Desktop Traffic", description: "Indicates a situation where fraudsters use old devices with outdated operating systems to avoid specific security tests or checks. They do this to hide certain activities that may not comply with security measures. This behavior can create risks, potentially allowing fraudulent actions to go unnoticed." },

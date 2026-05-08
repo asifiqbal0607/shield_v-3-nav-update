@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { Card, SectionTitle } from "../components/ui";
 import { transactionRows } from "../data/tables";
+import { FRAUD_DESCRIPTIONS } from "./FraudCodes";
 import {
   PlusIcon, SendIcon, MessageIcon, SearchIcon,
 } from "../components/ui/Icons";
@@ -33,7 +34,7 @@ const BLOCK_REASON_META = {
   "MCPS-1300": {
     title: "Shield Bypassing",
     detail:
-      "Shield detected that required fraud-prevention signals were missing, interrupted, or not loaded correctly.",
+      "Shield JS snippet was not rendered on the page, so Shield could not collect the required fraud-prevention signals.",
   },
   "AMCPS-1310": {
     title: "Bypassed",
@@ -187,141 +188,91 @@ function RelatedIpTransactions({ ip, currentId }) {
 }
 
 function WhyBlockedLookup() {
-  const [query, setQuery] = useState("");
-  const [searched, setSearched] = useState(false);
+  const [reasonSearch, setReasonSearch] = useState("");
 
-  const normalized = normalizeLookupId(query);
-  const row = normalized
-    ? transactionRows.find((t) => normalizeLookupId(t.id) === normalized)
-    : null;
-  const isBlocked = row?.status === "Block";
-  const hasResult = searched && row;
-  const hasNoResult = searched && normalized && !row;
-
-  function handleSearch() {
-    setSearched(true);
-  }
+  const reasonQuery = reasonSearch.trim().toLowerCase();
+  const filterReasons = (rows) => !reasonQuery ? rows : rows.filter((item) => (
+    item.code.toLowerCase().includes(reasonQuery) ||
+    item.title.toLowerCase().includes(reasonQuery) ||
+    item.description.toLowerCase().includes(reasonQuery)
+  ));
+  const shieldReasons = filterReasons(FRAUD_DESCRIPTIONS.shield);
+  const adhocReasons = filterReasons(FRAUD_DESCRIPTIONS.adhoc);
 
   return (
     <div className="spt-why-wrap">
       <div className="spt-why-hero">
         <div>
-          <div className="spt-why-eyebrow">Transaction Investigation</div>
-          <h2 className="spt-why-title">Why This Transaction Got Blocked</h2>
+          <div className="spt-why-eyebrow">Reason Library</div>
+          <h2 className="spt-why-title">Shield Reason Descriptions</h2>
           <p className="spt-why-sub">
-            Enter a transaction ID or MCP uniqid to see the block decision, matched reason codes, and a readable explanation.
+            Review the complete list of Shield block reasons and their exact descriptions.
           </p>
         </div>
       </div>
 
-      <div className="spt-why-search-row">
-        <div className="spt-why-search">
-          <SearchIcon size={15} />
-          <input
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              if (searched) setSearched(false);
-            }}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            placeholder="Please share transaction ID or MCP uniqid"
-          />
+      <div className="spt-reason-library">
+        <div className="spt-reason-library-head">
+          <div>
+            <div className="spt-why-section-title">Block Reasons and Descriptions</div>
+            <p>
+              Complete Shield reason reference for partners, grouped by Shield Codes and Adhoc Rules.
+            </p>
+          </div>
+          <div className="spt-reason-search">
+            <SearchIcon size={14} />
+            <input
+              value={reasonSearch}
+              onChange={(e) => setReasonSearch(e.target.value)}
+              placeholder="Search code, title, or description"
+            />
+          </div>
         </div>
-        <button type="button" className="spt-submit-btn spt-why-search-btn" onClick={handleSearch}>
-          Search
-        </button>
+
+        <ReasonDescriptionTable title="Shield Codes" rows={shieldReasons} />
+        <ReasonDescriptionTable title="Adhoc Rules" rows={adhocReasons} />
+
+        {!shieldReasons.length && !adhocReasons.length && (
+          <div className="spt-empty">No reason descriptions match your search.</div>
+        )}
       </div>
-
-      {!searched && (
-        <div className="spt-why-empty">
-          Try a sample blocked ID: <button type="button" onClick={() => setQuery("sskbb9692d834f1fe323f7f706a62995536")}>sskbb9692d834f1fe323f7f706a62995536</button>
-        </div>
-      )}
-
-      {hasNoResult && (
-        <div className="spt-why-notfound">
-          No transaction was found for <strong>{query}</strong>. Check the ID and try again.
-        </div>
-      )}
-
-      {hasResult && (
-        <div className={`spt-why-result${isBlocked ? " blocked" : " clear"}`}>
-          <div className="spt-why-result-top">
-            <div>
-              <div className="spt-why-result-label">Decision</div>
-              <div className="spt-why-result-status">
-                {isBlocked ? "Blocked" : row.status}
-              </div>
-            </div>
-            <div className="spt-why-score">
-              <span>{row.score ?? "-"}</span>
-              <small>{getRiskLabel(row.score)}</small>
-            </div>
-          </div>
-
-          <div className="spt-why-summary">
-            {isBlocked
-              ? `This transaction was blocked because Shield matched ${row.reasons.length} fraud signal${row.reasons.length === 1 ? "" : "s"} during validation.`
-              : "This transaction is present in Shield data, but it was not blocked."}
-          </div>
-
-          <div className="spt-why-meta-grid">
-            {[
-              ["UNIQID", row.id],
-              ["Time", row.time],
-              ["Network", row.network || "-"],
-              ["APK", row.apk || "-"],
-              ["MSISDN", row.msisdn || "-"],
-              ["Interaction", row.interaction || "-"],
-            ].map(([label, value]) => (
-              <div key={label} className="spt-why-meta-item">
-                <span>{label}</span>
-                <strong>{value}</strong>
-              </div>
-            ))}
-            <div className="spt-why-meta-item">
-              <span>User IP</span>
-              {row.userIp ? (
-                <RelatedIpTransactions ip={row.userIp} currentId={row.id} />
-              ) : (
-                <strong>-</strong>
-              )}
-            </div>
-          </div>
-
-          {row.reasons.length > 0 && (
-            <div className="spt-why-reasons">
-              <div className="spt-why-section-title">Matched Block Reasons</div>
-              {row.reasons.map((code) => {
-                const meta = BLOCK_REASON_META[code] || {
-                  title: "Shield Rule",
-                  detail: "This Shield rule contributed to the final transaction decision.",
-                };
-                return (
-                  <div key={code} className="spt-why-reason-row">
-                    <span className="spt-why-code">{code}</span>
-                    <div>
-                      <div className="spt-why-reason-title">{meta.title}</div>
-                      <div className="spt-why-reason-detail">{meta.detail}</div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {isBlocked && (
-            <div className="spt-why-answer">
-              <strong>Answer:</strong> Shield blocked this transaction to protect the service from suspicious traffic. The strongest signal is {row.reasons[0]}, which means {BLOCK_REASON_META[row.reasons[0]]?.detail?.toLowerCase() || "a Shield fraud rule was triggered."}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }
 
 // ── StatusPill ────────────────────────────────────────────────────────────────
+function ReasonDescriptionTable({ title, rows }) {
+  if (!rows.length) return null;
+
+  return (
+    <div className="spt-reason-section">
+      <div className="spt-reason-section-title">{title}</div>
+      <div className="spt-reason-table-wrap">
+        <table className="spt-reason-table">
+          <thead>
+            <tr>
+              <th>Shield Code</th>
+              <th>Fraud Title</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((item) => (
+              <tr key={item.code}>
+                <td>
+                  <span className="spt-reason-code">{item.code}</span>
+                </td>
+                <td className="spt-reason-title-cell">{item.title}</td>
+                <td className="spt-reason-desc-cell">{item.description}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
 function StatusPill({ status }) {
   const m = STATUS_META[status] ?? STATUS_META.pending;
   return (
@@ -333,6 +284,28 @@ function StatusPill({ status }) {
 
 // ── ReportIssueModal — exported for TransactionsModal ─────────────────────────
 // Shield AI chatbot
+const CHATBOT_STORAGE_KEY = "shield-ai-chat-history";
+
+const CHATBOT_WELCOME_MESSAGE = {
+  id: "bot-welcome",
+  sender: "bot",
+  title: "Shield AI Support",
+  text:
+    "Hi, I can help partners understand block decisions, troubleshoot integration issues, and prepare cleaner support tickets.",
+  next: "Share a question or paste a transaction ID to begin.",
+};
+
+function getStoredChatMessages() {
+  if (typeof window === "undefined") return [CHATBOT_WELCOME_MESSAGE];
+
+  try {
+    const parsed = JSON.parse(window.localStorage.getItem(CHATBOT_STORAGE_KEY) || "[]");
+    return Array.isArray(parsed) && parsed.length ? parsed : [CHATBOT_WELCOME_MESSAGE];
+  } catch {
+    return [CHATBOT_WELCOME_MESSAGE];
+  }
+}
+
 const CHATBOT_QUICK_PROMPTS = [
   "Why was my transaction blocked?",
   "How do I report overblocking?",
@@ -411,12 +384,26 @@ function buildTransactionReply(message) {
   }
 
   const isBlocked = row.status === "Block";
-  const reasons = row.reasons?.length ? row.reasons.join(", ") : "no block reason codes";
+  const hasShieldBypassing = isBlocked && row.reasons?.includes("MCPS-1300");
+  const visibleReasons = hasShieldBypassing ? ["MCPS-1300"] : row.reasons;
+  const reasons = visibleReasons?.length ? visibleReasons.join(", ") : "no block reason codes";
+  const primaryReason = visibleReasons?.[0];
+  const primaryReasonTitle = BLOCK_REASON_META[primaryReason]?.title || primaryReason || "not available";
   return {
-    title: isBlocked ? "This transaction was blocked" : "This transaction was not blocked",
+    type: "transaction",
+    decision: row.status,
+    score: row.score ?? "-",
+    network: row.network || "-",
+    apk: row.apk || "-",
+    reasons,
+    title: hasShieldBypassing
+      ? "Blocked by Shield Bypassing"
+      : isBlocked ? "This transaction was blocked" : "This transaction was not blocked",
     text: `${row.id} shows status ${row.status}, score ${row.score ?? "-"}, network ${row.network || "-"}, APK ${row.apk || "-"}, and reason codes: ${reasons}.`,
-    next: isBlocked
-      ? `The first matched reason is ${row.reasons?.[0] || "not available"}. Ask for review if the device was a verified human test or valid production user.`
+    next: hasShieldBypassing
+      ? "Shield Bypassing means the Shield JS snippet was not rendered on the page. Ask the partner to confirm the snippet is present before the protected action and share the page URL, browser/device details, and implementation notes if they believe this was a valid test."
+      : isBlocked
+      ? `The first matched reason is ${primaryReasonTitle}. Ask for review if the device was a verified human test or valid production user.`
       : "No block action is present in the current records. If the partner still saw a failure, compare the API response and landing-page event logs.",
   };
 }
@@ -464,18 +451,13 @@ function createChatbotReply(message, partnerTickets) {
 }
 
 function ShieldAIChatbot({ tickets, onNew }) {
-  const [messages, setMessages] = useState([
-    {
-      id: "bot-welcome",
-      sender: "bot",
-      title: "Shield AI Support",
-      text:
-        "Hi, I can help partners understand block decisions, troubleshoot integration issues, and prepare cleaner support tickets.",
-      next: "Share a question or paste a transaction ID to begin.",
-    },
-  ]);
+  const [messages, setMessages] = useState(getStoredChatMessages);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+
+  React.useEffect(() => {
+    window.localStorage.setItem(CHATBOT_STORAGE_KEY, JSON.stringify(messages));
+  }, [messages]);
 
   function sendMessage(text = input) {
     const clean = text.trim();
@@ -525,7 +507,35 @@ function ShieldAIChatbot({ tickets, onNew }) {
           {messages.map((msg) => (
             <div key={msg.id} className={`spt-ai-msg spt-ai-msg--${msg.sender}`}>
               {msg.sender === "bot" && msg.title && <div className="spt-ai-msg-title">{msg.title}</div>}
-              <div className="spt-ai-msg-text">{msg.text}</div>
+              {msg.sender === "bot" && msg.type === "transaction" ? (
+                <div className="spt-ai-result-card">
+                  <div className="spt-ai-result-summary">{msg.text}</div>
+                  <div className="spt-ai-result-grid">
+                    <div>
+                      <span>Decision</span>
+                      <strong>{msg.decision}</strong>
+                    </div>
+                    <div>
+                      <span>Score</span>
+                      <strong>{msg.score}</strong>
+                    </div>
+                    <div>
+                      <span>Network</span>
+                      <strong>{msg.network}</strong>
+                    </div>
+                    <div>
+                      <span>APK</span>
+                      <strong>{msg.apk}</strong>
+                    </div>
+                  </div>
+                  <div className="spt-ai-result-reason">
+                    <span>Primary Reason</span>
+                    <strong>{msg.reasons}</strong>
+                  </div>
+                </div>
+              ) : (
+                <div className="spt-ai-msg-text">{msg.text}</div>
+              )}
               {msg.sender === "bot" && msg.next && <div className="spt-ai-msg-next">{msg.next}</div>}
             </div>
           ))}
@@ -1090,7 +1100,7 @@ function PartnerTicketList({ tickets, onNew }) {
           className={`spt-main-tab${tab === "why-blocked" ? " spt-main-tab--active" : ""}`}
           onClick={() => setTab("why-blocked")}
         >
-          Why Blocked?
+          Shield Reason Descriptions
         </button>
         <button
           type="button"

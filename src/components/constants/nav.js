@@ -57,7 +57,7 @@ export const NAV_GROUPS = [
     group: "Resources",
     items: [
       { key: "docs",        label: "Documentation",     icon: BookOpen,    color: "#64748b", roles: ["admin", "partner"] },
-      { key: "fraud-codes", label: "Shield Fraud Codes", icon: ShieldAlert, color: "#dc2626", roles: ["admin", "partner"] },
+      { key: "fraud-codes", label: "Shield Fraud Codes", icon: ShieldAlert, color: "#dc2626", roles: ["admin"] },
       { key: "sandbox",     label: "Sandbox",           icon: KeyRound,    color: "#7c3aed", roles: ["admin"], badge: { n: "New", c: GREEN } },
       { key: "support",     label: "Support",           icon: HeadphonesIcon, color: "#0d9488", roles: ["partner"] },
     ],

@@ -22898,9 +22898,135 @@ table tbody td {
   font-size: 13px;
   line-height: 1.5;
 }
+.spt-reason-library {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 4px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+}
+.spt-reason-library-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.spt-reason-library-head p {
+  margin-top: 4px;
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.spt-reason-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: min(360px, 100%);
+  height: 38px;
+  padding: 0 11px;
+  flex-shrink: 0;
+  border: 1px solid var(--border2);
+  border-radius: 10px;
+  background: #f8fafc;
+  color: var(--text-4);
+}
+.spt-reason-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 12.5px;
+}
+.spt-reason-section {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+.spt-reason-section-title {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  background: #f8fafc;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+}
+.spt-reason-table-wrap {
+  overflow-x: auto;
+}
+.spt-reason-table {
+  width: 100%;
+  min-width: 860px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+.spt-reason-table th {
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+  background: #fbfdff;
+  color: #6f86a8;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-align: left;
+  text-transform: uppercase;
+}
+.spt-reason-table th:nth-child(1) {
+  width: 150px;
+}
+.spt-reason-table th:nth-child(2) {
+  width: 230px;
+}
+.spt-reason-table td {
+  padding: 13px 14px;
+  border-bottom: 1px solid #edf1f7;
+  vertical-align: top;
+}
+.spt-reason-table tr:last-child td {
+  border-bottom: 0;
+}
+.spt-reason-code {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 24px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1652c8;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.spt-reason-title-cell {
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+.spt-reason-desc-cell {
+  color: var(--text-3);
+  font-size: 12.5px;
+  line-height: 1.48;
+}
 @media (max-width: 900px) {
   .spt-why-meta-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .spt-reason-library-head {
+    flex-direction: column;
+  }
+  .spt-reason-search {
+    width: 100%;
   }
 }
 @media (max-width: 639px) {
@@ -23022,6 +23148,59 @@ table tbody td {
   border-top: 1px solid #e7edf6;
   color: var(--text-3);
   font-weight: 700;
+}
+.spt-ai-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.spt-ai-result-summary {
+  color: var(--text-2);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.spt-ai-result-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid #dbe5f2;
+  border-radius: 10px;
+  background: #dbe5f2;
+}
+.spt-ai-result-grid div {
+  min-width: 0;
+  padding: 9px 10px;
+  background: #f8fbff;
+}
+.spt-ai-result-grid span,
+.spt-ai-result-reason span {
+  display: block;
+  color: #6f86a8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.spt-ai-result-grid strong,
+.spt-ai-result-reason strong {
+  display: block;
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+}
+.spt-ai-result-reason {
+  padding: 10px 11px;
+  border: 1px solid #bfdbfe;
+  border-left: 3px solid #1652c8;
+  border-radius: 10px;
+  background: #eff6ff;
+}
+.spt-ai-result-reason strong {
+  color: #1652c8;
+  font-family: var(--font-mono);
 }
 .spt-ai-msg--typing {
   display: inline-flex;

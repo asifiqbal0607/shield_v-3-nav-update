@@ -1,4 +1,4 @@
-import PageFraudCodes, { FraudDescriptionsModal } from "../pages/FraudCodes";
+import PageFraudCodes from "../pages/FraudCodes";
 import PageIPManager from "../pages/IPManager";
 import PageOverview from "../pages/Overview";
 import PageBlock from "../pages/Blocking";
@@ -34,15 +34,8 @@ export default function PageRouter({
 }) {
   const key = ALIASES[page] ?? page;
 
-  // Partner clicking fraud-codes: show modal over overview, close returns to overview
   if (key === "fraud-codes" && role === "partner") {
-    return (
-      <>
-        <PageOverview role={role} setPage={setPage}
-          capLimit={role === "partner" ? { value: 500, period: "day", usedToday: 347 } : null} />
-        <FraudDescriptionsModal onClose={() => setPage("overview")} />
-      </>
-    );
+    return <PageOverview role={role} setPage={setPage} />;
   }
 
   if (key === "users") return <PageUsers role={role} setPage={setPage} />;
