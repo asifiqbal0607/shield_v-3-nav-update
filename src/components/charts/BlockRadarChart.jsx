@@ -21,7 +21,7 @@ function RadarTooltip({ active, payload, label }) {
         <div key={i} className="brc-row-between">
           <div className="brc-legend-row">
             <div
-              className="brc-tooltip-dot" style={{ "--dot-color": p.color }}
+              className="brc-tooltip-dot"
             />
             <span className="brc-legend-val">{p.name}</span>
           </div>
@@ -168,9 +168,8 @@ export default function BlockRadarChart({
               onMouseEnter={() => setHovered(b.key)}
               onMouseLeave={() => setHovered(null)}
               className={`brc-legend-btn${hidden[b.key] ? " brc-legend-btn--hidden" : ""}`}
-              style={{ "--legend-bg": `${b.color}18` }}
             >
-              <div className="brc-legend-dot" style={{ "--dot-color": b.color, "--dot-shadow": `0 0 4px ${b.color}88` }} />
+              <div className="brc-legend-dot" />
               <span className="brc-bar-label">{b.key}</span>
             </button>
 
@@ -178,7 +177,7 @@ export default function BlockRadarChart({
             {hovered === b.key && (
               <div className="brc-popover-top">
                 <div className="brc-hint">7-day total</div>
-                <div className="brc-popover-total" style={{ "--dot-color": b.color }}>
+                <div className="brc-popover-total">
                   {totals[b.key]?.toLocaleString() ?? "--"}
                 </div>
                 <div className="brc-popover-bot" />

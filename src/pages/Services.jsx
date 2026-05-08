@@ -1846,11 +1846,6 @@ function ActionsDropdown({ rowId, openRow, setOpenRow, onAction, row }) {
       <div
         ref={dropRef}
         className="svc-adm-dropdown-portal"
-        style={{
-          top: coords.top ?? "auto",
-          bottom: coords.bottom ?? "auto",
-          right: coords.right,
-        }}
       >
       {ADMIN_ACTIONS.map((a, i) => {
           if (a.divider) return <div key={i} className="svc-adm-divider" />;
@@ -1876,10 +1871,10 @@ function ActionsDropdown({ rowId, openRow, setOpenRow, onAction, row }) {
               }}
               className="svc-adm-item"
             >
-              <span className="svc-adm-icon" style={{ "--c": color }}>
+              <span className="svc-adm-icon">
                 {a.icon}
               </span>
-              <span className="svc-adm-label" style={{ "--c": color }}>
+              <span className="svc-adm-label">
                 {label}
               </span>
             </button>
@@ -1915,7 +1910,6 @@ function SvcModal({ title, subtitle, onClose, children, width = 560 }) {
     <div className="svc-modal-overlay" onClick={onClose}>
       <div
         className="svc-modal-box svc-modal-box-responsive"
-        style={{ "--mw": width }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="svc-modal-header">
@@ -3329,7 +3323,7 @@ function ToggleStatusModal({ row, onConfirm, onClose }) {
   const isActive = row?.status === "active";
   return createPortal(
     <div className="svc-modal-overlay" onClick={onClose}>
-      <div className="svc-modal-box" style={{ "--mw": 420 }} onClick={(e) => e.stopPropagation()}>
+      <div className="svc-modal-box" onClick={(e) => e.stopPropagation()}>
         <div className="svc-modal-header">
           <div>
             <div className="svc-modal-title">
@@ -3376,7 +3370,6 @@ function PartnerActions({ row, openModal }) {
           key={a.key}
           title={a.label}
           className={a.iconOnly ? "svc-action-icon-btn" : "svc-action-badge"}
-          style={{ "--c": a.color }}
           onClick={() => openModal(a.key, row)}
         >
           {a.iconOnly ? (
@@ -3596,7 +3589,7 @@ function SvcExportModal({
           {/* Header */}
           <div className="svc-exp-header">
             <div className="svc-exp-header-left">
-              <div className="svc-exp-icon" style={{ "--c": color }}>
+              <div className="svc-exp-icon">
                 ⬇
               </div>
               <div>
@@ -3651,7 +3644,6 @@ function SvcExportModal({
             <button
               type="button"
               className="svc-exp-next-btn"
-              style={{ "--c": color, background: "var(--c)" }}
               onClick={() => setAdminStep(2)}
             >
               Continue →
@@ -3670,7 +3662,7 @@ function SvcExportModal({
         {/* Header */}
         <div className="svc-exp-header">
           <div className="svc-exp-header-left">
-            <div className="svc-exp-icon" style={{ "--c": color }}>
+            <div className="svc-exp-icon">
               ⬇
             </div>
             <div>
@@ -3709,10 +3701,9 @@ function SvcExportModal({
         </div>
 
         {!isPartnerRole && selPartner && (
-          <div className="svc-exp-partner-pill" style={{ "--c": color }}>
+          <div className="svc-exp-partner-pill">
             <span
               className="svc-exp-partner-pill-dot"
-              style={{ "--c": color }}
             />
             <span>
               Partner: <strong>{selPartner}</strong>
@@ -3850,7 +3841,6 @@ function SvcExportModal({
               <button
                 type="button"
                 className="svc-exp-export-btn"
-                style={{ "--c": color, background: "var(--c)" }}
                 onClick={doExport}
                 disabled={
                   exporting ||
@@ -3992,7 +3982,6 @@ export default function PageServices({ role = "admin", setPage }) {
         return (
           <span
             className="svc-status-badge"
-            style={{ "--c": row.status === "active" ? "#16a34a" : "#f59e0b" }}
           >
             {row.status.toUpperCase()}
           </span>
@@ -4075,12 +4064,12 @@ export default function PageServices({ role = "admin", setPage }) {
             onClick={() => { setExportPartner(null); setExportModal(filter); }}
             onKeyDown={(e) => e.key === "Enter" && (setExportPartner(null), setExportModal(filter))}
           >
-            <Card className="stat-top-4" style={{ "--c": color }}>
-              <div className="kpi-stat dyn-color" style={{ "--c": color }}>
+            <Card className="stat-top-4">
+              <div className="kpi-stat dyn-color">
                 {value}
               </div>
               <div className="stat-sublabel">{label}</div>
-              <div className="svc-stat-export-hint" style={{ "--c": color, color: "var(--c)" }}>
+              <div className="svc-stat-export-hint">
                 ↓ Export
               </div>
             </Card>
@@ -4170,7 +4159,6 @@ export default function PageServices({ role = "admin", setPage }) {
               <button
                 onClick={() => setPage && setPage("onboarding")}
                 className="svc-add-btn"
-                style={{ "--c": T }}
               >
                 ⊕ Add New Service
               </button>
@@ -4196,16 +4184,13 @@ export default function PageServices({ role = "admin", setPage }) {
                     setTab(key);
                   }}
                   className={`svc-tab-btn ${isOn ? "on" : "off"}`}
-                  style={{ "--c": `#${textHex}` }}
                 >
                   <span
                     className={`svc-tab-dot ${isOn ? "on" : "off"}`}
-                    style={{ "--c": `#${dotHex}` }}
                   />
                   {label}
                   <span
                     className={`svc-tab-pill ${isOn ? "on" : "off"}`}
-                    style={{ "--bg": `#${bgHex}`, "--c": `#${textHex}` }}
                   >
                     {count}
                   </span>

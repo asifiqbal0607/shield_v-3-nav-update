@@ -41,13 +41,12 @@ export default function HeatmapBar({ data }) {
                     <span className="ov2-heatmap-tip-val">{sharePct.toFixed(1)}%</span>
                   </div>
                   <div className="ov2-heatmap-tip-track">
-                    <div className="ov2-heatmap-tip-fill" style={{ "--w": `${sharePct}%` }} />
+                    <div className="ov2-heatmap-tip-fill" />
                   </div>
                 </div>
               )}
               <div
                 className="ov2-heatmap-bar"
-                style={{ "--h": `${Math.max(6, pct * 100)}%`, "--o": 0.15 + pct * 0.85 }}
               />
             </div>
           );

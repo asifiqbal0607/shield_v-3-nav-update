@@ -78,7 +78,7 @@ export default function PageRouter({
     sandbox: <PageStub title="Sandbox Environment" icon="🧪" />,
     "password-generator": <PagePasswordGenerator />,
     "ip-manager": <PageIPManager role={role} />,
-    "traffic-sources": <Trafficsources />,
+    "traffic-sources": <Trafficsources role={role} />,
     "support": <PageSupport role={role} />,
   };
 

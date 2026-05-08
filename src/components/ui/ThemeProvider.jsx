@@ -19,10 +19,16 @@ import { buildCSSVars } from '../config/theme';
 export default function ThemeProvider({ children }) {
   useEffect(() => {
     const vars = buildCSSVars();
-    const root = document.documentElement;
-    Object.entries(vars).forEach(([key, val]) => {
-      root.style.setProperty(key, val);
-    });
+    const id = "app-theme-vars";
+    let tag = document.getElementById(id);
+    if (!tag) {
+      tag = document.createElement("style");
+      tag.id = id;
+      document.head.appendChild(tag);
+    }
+    tag.textContent = `:root{${Object.entries(vars)
+      .map(([key, val]) => `${key}:${val};`)
+      .join("")}}`;
   }, []);
 
   return children;

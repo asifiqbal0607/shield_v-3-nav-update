@@ -9,11 +9,11 @@ export default function ChannelRows({ data, filterScale, onOpen }) {
         return (
           <div key={c.name} className="ov2-ch-row" onClick={() => onOpen(`${c.name} — Transactions`)}>
             <div className="ov2-ch-name-wrap">
-              <span className="ov2-ch-dot" style={{ "--c": c.color }} />
+              <span className="ov2-ch-dot" />
               <span className="ov2-ch-name">{c.name}</span>
             </div>
             <div className="ov2-ch-bar-wrap">
-              <div className="ov2-ch-bar" style={{ "--w": `${barPct}%`, "--c": c.color }} />
+              <div className="ov2-ch-bar" />
             </div>
             <div className="ov2-ch-stats">
               <span className="ov2-ch-ctr">{ctr}% CTR</span>

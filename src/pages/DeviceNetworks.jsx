@@ -97,8 +97,7 @@ function StatPieCard({ title, data, onSliceClick, serviceFilter }) {
             onClick={() => onSliceClick && onSliceClick(d.name)}
           >
             <span
-              className="pie-legend-dot"
-              style={{ "--c": PALETTE[i % PALETTE.length] }}
+              className={`pie-legend-dot pie-palette-${i % PALETTE.length}`}
             />
             <span className="pie-legend-name">
               {d.name.length > 18 ? d.name.slice(0, 18) + "…" : d.name}
@@ -132,13 +131,15 @@ export default function PageDevice({ role = "admin" }) {
       label: "Unique Devices",
       value: "48,291",
       color: "#1d4ed8",
+      tone: "cc-blue",
       clickable: true,
     },
-    { label: "Top OS", value: "Android", color: "#f59e0b", clickable: true },
+    { label: "Top OS", value: "Android", color: "#f59e0b", tone: "cc-amber", clickable: true },
     {
       label: "Top Browser",
       value: "Chrome",
       color: "#8b5cf6",
+      tone: "cc-purple",
       clickable: true,
     },
   ];
@@ -152,22 +153,9 @@ export default function PageDevice({ role = "admin" }) {
             onClick={
               s.clickable ? () => open(`${s.label} — Transactions`) : undefined
             }
-            className={s.clickable ? "stat-card-click" : "stat-card-click-opt"}
-            style={{ "--c": s.color }}
-            onMouseEnter={
-              s.clickable
-                ? (e) =>
-                    (e.currentTarget.style.boxShadow =
-                      "0 4px 16px rgba(0,0,0,.1)")
-                : undefined
-            }
-            onMouseLeave={
-              s.clickable
-                ? (e) => (e.currentTarget.style.boxShadow = "")
-                : undefined
-            }
+            className={`${s.clickable ? "stat-card-click" : "stat-card-click-opt"} ${s.tone}`}
           >
-            <div className="dyn-color" style={{ "--c": s.color }}>
+            <div className={`dyn-color ${s.tone}`}>
               {s.value}
             </div>
             <div className="stat-lbl-12">{s.label}</div>

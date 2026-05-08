@@ -660,7 +660,7 @@ export default function PageReporting({ role = "admin" }) {
                 },
               ].map(({ color, label, val }) => (
                 <div key={label} className="rep-legend-row">
-                  <div className="rep-legend-dot" style={{ "--c": color }} />
+                  <div className="rep-legend-dot" />
                   <div className="rep-legend-lbl">{label}</div>
                   <div className="rep-legend-val">
                     {val} <span className="rep-legend-unit">reports</span>

@@ -29,11 +29,19 @@ const SEVERITY_COLORS = {
 };
 
 const SUMMARY_STATS = [
-  { label: "Total Blocked", value: "15,39,810", color: ROSE },
-  { label: "Critical Events", value: "2,53,660", color: ROSE },
-  { label: "Clean", value: "6,15,350", color: GREEN },
+  { label: "Total Blocked", value: "15,39,810", color: ROSE, tone: "cc-red" },
+  { label: "Critical Events", value: "2,53,660", color: ROSE, tone: "cc-red" },
+  { label: "Clean", value: "6,15,350", color: GREEN, tone: "cc-emerald" },
   // { label: "Auto-Resolved", value: "8,24,110", color: GREEN },
 ];
+
+function blockTone(index) {
+  return ["cc-blue", "cc-red", "cc-pink", "cc-amber", "cc-emerald", "cc-slate", "cc-purple", "cc-cyan2"][index % 8];
+}
+
+function blockWidthClass(pct) {
+  return `ts-w-${Math.round(Math.min(100, pct * 3.5) / 5) * 5}`;
+}
 
 // ── Recharts config constants ──────────────────────────────────────────────
 const CHART_TICK_X = { fontSize: 9, fill: "#cbd5e1" };
@@ -55,14 +63,9 @@ export default function PageBlocking() {
           <Card
             key={s.label}
             onClick={() => open(`${s.label} — Transactions`)}
-            className="stat-card-click"
-            style={{ "--c": s.color }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,.1)")
-            }
-            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "")}
+            className={`stat-card-click ${s.tone}`}
           >
-            <div className="kpi-stat-sm dyn-color" style={{ "--c": s.color }}>
+            <div className={`kpi-stat-sm dyn-color ${s.tone}`}>
               {s.value}
             </div>
             <div className="stat-lbl">{s.label}</div>
@@ -161,24 +164,15 @@ export default function PageBlocking() {
                   key={i}
                   className="dt-tr"
                   onClick={() => open(`${r.reason} — Transactions`)}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#f8fafc")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
                 >
                   <td className="p-sm">
                     <div className="f-gap-9">
-                      <div
-                        className="bl-color-square"
-                        style={{ "--c": r.color }}
-                      />
+                      <div className={`bl-color-square ${blockTone(i)}`} />
                       <span className="txt-strong">{r.reason}</span>
                     </div>
                   </td>
                   <td className="bl-td-mono">{r.count}</td>
-                  <td className="bl-td-color" style={{ "--c": r.color }}>
+                  <td className={`bl-td-color ${blockTone(i)}`}>
                     {r.pct}%
                   </td>
                   <td
@@ -191,10 +185,7 @@ export default function PageBlocking() {
                   </td>
                   <td className="bl-td-wide">
                     <div className="progress-track">
-                      <div
-                        className="progress-bar"
-                        style={{ "--w": `${r.pct * 3.5}%`, "--c": r.color }}
-                      />
+                      <div className={`progress-bar ${blockTone(i)} ${blockWidthClass(r.pct)}`} />
                     </div>
                   </td>
                 </tr>

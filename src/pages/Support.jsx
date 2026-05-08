@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { Card, SectionTitle } from "../components/ui";
+import { transactionRows } from "../data/tables";
 import {
-  PlusIcon, SendIcon, MessageIcon, ChevronDownIcon,
+  PlusIcon, SendIcon, MessageIcon, SearchIcon,
 } from "../components/ui/Icons";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -22,6 +23,34 @@ const PRIORITY_LEVELS = [
   { key: "medium",   label: "Medium",   color: "#1d4ed8" },
   { key: "low",      label: "Low",      color: "#0d9e6e" },
 ];
+
+const BLOCK_REASON_META = {
+  "MCPS-1200": {
+    title: "Desktop Traffic",
+    detail:
+      "The transaction matched a desktop or unsupported platform pattern instead of an expected mobile flow.",
+  },
+  "MCPS-1300": {
+    title: "Shield Bypassing",
+    detail:
+      "Shield detected that required fraud-prevention signals were missing, interrupted, or not loaded correctly.",
+  },
+  "AMCPS-1310": {
+    title: "Bypassed",
+    detail:
+      "An additional bypass rule was triggered together with the parent Shield bypassing code.",
+  },
+  "MCPS-1400": {
+    title: "Duplicate Shield Token",
+    detail:
+      "The same Shield token or unique transaction context appears to have been reused.",
+  },
+  "MCPS-2000": {
+    title: "Excessive IP Access Attempts",
+    detail:
+      "Too many requests were observed from the same IP address in a short time window.",
+  },
+};
 
 const STATUS_FLOW = ["pending", "review", "processing", "feedback", "resolved"];
 const STATUS_META = {
@@ -95,11 +124,208 @@ function timeAgo(ts) {
   return `${Math.floor(d / 86400000)}d ago`;
 }
 
+function getRiskLabel(score) {
+  if (score == null) return "Unknown";
+  if (score >= 7.9) return "Clean";
+  if (score >= 3.9) return "Suspect";
+  return "High Risk";
+}
+
+function normalizeLookupId(value) {
+  const text = String(value || "").trim();
+  if (!text) return "";
+  const match = text.match(/(?:uniqid|uniqueid|mcpuniqid|mcp_uniqid)=([^&\s]+)/i);
+  return decodeURIComponent(match?.[1] || text).trim().toLowerCase();
+}
+
+const IP_LOOKBACK_MS = 60 * 60 * 1000;
+
+function parseTransactionTime(time) {
+  if (!time) return null;
+  const year = new Date().getFullYear();
+  const normalized = time.replace(/^([A-Za-z]{3}\s+\d{1,2}),\s+/, `$1, ${year} `);
+  const parsed = Date.parse(normalized);
+  return Number.isNaN(parsed) ? null : parsed;
+}
+
+function RelatedIpTransactions({ ip, currentId }) {
+  const currentRow = transactionRows.find((t) => t.id === currentId);
+  const currentTime = parseTransactionTime(currentRow?.time);
+  const rows = transactionRows
+    .filter((t) => {
+      if (t.userIp !== ip) return false;
+      const rowTime = parseTransactionTime(t.time);
+      if (currentTime == null || rowTime == null) return t.id === currentId;
+      return rowTime <= currentTime && currentTime - rowTime <= IP_LOOKBACK_MS;
+    })
+    .sort((a, b) => (parseTransactionTime(b.time) ?? 0) - (parseTransactionTime(a.time) ?? 0));
+
+  return (
+    <span className="spt-ip-hover">
+      <strong className="spt-ip-hover-value">{ip}</strong>
+      <span className="spt-ip-popover" role="tooltip">
+        <span className="spt-ip-popover-title">
+          Last hour only for this User IP
+          <em>{rows.length} uniqid{rows.length === 1 ? "" : "s"}</em>
+        </span>
+        <span className="spt-ip-popover-note">
+          Related to {ip}
+        </span>
+        <span className="spt-ip-popover-list">
+          {rows.map((tx) => (
+            <span
+              key={tx.id}
+              className={`spt-ip-popover-row spt-ip-popover-row--compact${tx.id === currentId ? " current" : ""}`}
+            >
+              <span className="spt-ip-popover-id">{tx.id}</span>
+            </span>
+          ))}
+        </span>
+      </span>
+    </span>
+  );
+}
+
+function WhyBlockedLookup() {
+  const [query, setQuery] = useState("");
+  const [searched, setSearched] = useState(false);
+
+  const normalized = normalizeLookupId(query);
+  const row = normalized
+    ? transactionRows.find((t) => normalizeLookupId(t.id) === normalized)
+    : null;
+  const isBlocked = row?.status === "Block";
+  const hasResult = searched && row;
+  const hasNoResult = searched && normalized && !row;
+
+  function handleSearch() {
+    setSearched(true);
+  }
+
+  return (
+    <div className="spt-why-wrap">
+      <div className="spt-why-hero">
+        <div>
+          <div className="spt-why-eyebrow">Transaction Investigation</div>
+          <h2 className="spt-why-title">Why This Transaction Got Blocked</h2>
+          <p className="spt-why-sub">
+            Enter a transaction ID or MCP uniqid to see the block decision, matched reason codes, and a readable explanation.
+          </p>
+        </div>
+      </div>
+
+      <div className="spt-why-search-row">
+        <div className="spt-why-search">
+          <SearchIcon size={15} />
+          <input
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              if (searched) setSearched(false);
+            }}
+            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+            placeholder="Please share transaction ID or MCP uniqid"
+          />
+        </div>
+        <button type="button" className="spt-submit-btn spt-why-search-btn" onClick={handleSearch}>
+          Search
+        </button>
+      </div>
+
+      {!searched && (
+        <div className="spt-why-empty">
+          Try a sample blocked ID: <button type="button" onClick={() => setQuery("sskbb9692d834f1fe323f7f706a62995536")}>sskbb9692d834f1fe323f7f706a62995536</button>
+        </div>
+      )}
+
+      {hasNoResult && (
+        <div className="spt-why-notfound">
+          No transaction was found for <strong>{query}</strong>. Check the ID and try again.
+        </div>
+      )}
+
+      {hasResult && (
+        <div className={`spt-why-result${isBlocked ? " blocked" : " clear"}`}>
+          <div className="spt-why-result-top">
+            <div>
+              <div className="spt-why-result-label">Decision</div>
+              <div className="spt-why-result-status">
+                {isBlocked ? "Blocked" : row.status}
+              </div>
+            </div>
+            <div className="spt-why-score">
+              <span>{row.score ?? "-"}</span>
+              <small>{getRiskLabel(row.score)}</small>
+            </div>
+          </div>
+
+          <div className="spt-why-summary">
+            {isBlocked
+              ? `This transaction was blocked because Shield matched ${row.reasons.length} fraud signal${row.reasons.length === 1 ? "" : "s"} during validation.`
+              : "This transaction is present in Shield data, but it was not blocked."}
+          </div>
+
+          <div className="spt-why-meta-grid">
+            {[
+              ["UNIQID", row.id],
+              ["Time", row.time],
+              ["Network", row.network || "-"],
+              ["APK", row.apk || "-"],
+              ["MSISDN", row.msisdn || "-"],
+              ["Interaction", row.interaction || "-"],
+            ].map(([label, value]) => (
+              <div key={label} className="spt-why-meta-item">
+                <span>{label}</span>
+                <strong>{value}</strong>
+              </div>
+            ))}
+            <div className="spt-why-meta-item">
+              <span>User IP</span>
+              {row.userIp ? (
+                <RelatedIpTransactions ip={row.userIp} currentId={row.id} />
+              ) : (
+                <strong>-</strong>
+              )}
+            </div>
+          </div>
+
+          {row.reasons.length > 0 && (
+            <div className="spt-why-reasons">
+              <div className="spt-why-section-title">Matched Block Reasons</div>
+              {row.reasons.map((code) => {
+                const meta = BLOCK_REASON_META[code] || {
+                  title: "Shield Rule",
+                  detail: "This Shield rule contributed to the final transaction decision.",
+                };
+                return (
+                  <div key={code} className="spt-why-reason-row">
+                    <span className="spt-why-code">{code}</span>
+                    <div>
+                      <div className="spt-why-reason-title">{meta.title}</div>
+                      <div className="spt-why-reason-detail">{meta.detail}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {isBlocked && (
+            <div className="spt-why-answer">
+              <strong>Answer:</strong> Shield blocked this transaction to protect the service from suspicious traffic. The strongest signal is {row.reasons[0]}, which means {BLOCK_REASON_META[row.reasons[0]]?.detail?.toLowerCase() || "a Shield fraud rule was triggered."}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── StatusPill ────────────────────────────────────────────────────────────────
 function StatusPill({ status }) {
   const m = STATUS_META[status] ?? STATUS_META.pending;
   return (
-    <span className="spt-status-pill" style={{ "--s-color": m.color, "--s-bg": m.bg }}>
+    <span className="spt-status-pill">
       {m.label}
     </span>
   );
@@ -336,7 +562,6 @@ export function ReportIssueModal({ onClose, prefillTransactionId = null, partner
                   {PRIORITY_LEVELS.map((p) => (
                     <button key={p.key} type="button"
                       className={`spt-priority-btn${priority === p.key ? " spt-priority-btn--active" : ""}`}
-                      style={{ "--pri-color": p.color }}
                       onClick={() => setPriority(p.key)}
                     >
                       <span className="spt-priority-dot" />
@@ -437,7 +662,6 @@ function StatusDropdown({ ticketId, current, onChange }) {
         <>
           <div className="spt-sdd-backdrop" onClick={() => setOpen(false)} />
           <div className="spt-sdd-menu"
-            style={{ "--menu-top": `${coords.top}px`, "--menu-left": `${coords.left}px` }}
           >
             <div className="spt-sdd-menu-title">Set Status</div>
             {STATUS_FLOW.map((s) => {
@@ -445,7 +669,6 @@ function StatusDropdown({ ticketId, current, onChange }) {
               return (
                 <button key={s} type="button"
                   className={`spt-sdd-item${s === current ? " spt-sdd-item--active" : ""}`}
-                  style={{ "--s-color": m.color, "--s-bg": m.bg }}
                   onClick={() => { onChange(ticketId, s); setOpen(false); }}
                 >
                   <span className="spt-sdd-dot" />
@@ -459,7 +682,6 @@ function StatusDropdown({ ticketId, current, onChange }) {
                 <div className="spt-sdd-divider" />
                 <button type="button"
                   className="spt-sdd-advance-item"
-                  style={{ "--s-color": nextMeta.color, "--s-bg": nextMeta.bg }}
                   onClick={() => { onChange(ticketId, nextKey); setOpen(false); }}
                 >
                   <span className="spt-sdd-dot" />
@@ -491,7 +713,7 @@ function ClientAlerts({ tickets }) {
           {c.open > 0 && <span className="spt-client-alert-dot" />}
           <div className="spt-client-alert-name">{partner}</div>
           <div className="spt-client-alert-counts">
-            <span className="spt-client-alert-open" style={{ color: c.open > 0 ? "#dc2626" : "#94a3b8" }}>
+            <span className="spt-client-alert-open">
               {c.open} open
             </span>
             <span className="spt-client-alert-sep">·</span>
@@ -573,7 +795,7 @@ function AdminGrid({ tickets, onStatusChange }) {
                         : <span className="spt-uniq-none">—</span>}
                     </td>
                     <td className="spt-grid-td">
-                      <span className="spt-priority-pill" style={{ "--pri-color": getPriColor(t.priority) }}>
+                      <span className="spt-priority-pill">
                         <span className="spt-priority-dot" />
                         {t.priority.charAt(0).toUpperCase() + t.priority.slice(1)}
                       </span>
@@ -598,6 +820,7 @@ function AdminGrid({ tickets, onStatusChange }) {
 // ── Partner: Ticket list ──────────────────────────────────────────────────────
 function PartnerTicketList({ tickets, onNew }) {
   const [filter, setFilter] = useState("all");
+  const [tab, setTab] = useState("tickets");
 
   const counts = {
     all:        tickets.length,
@@ -613,6 +836,27 @@ function PartnerTicketList({ tickets, onNew }) {
 
   return (
     <div className="spt-wrap">
+      <div className="spt-main-tabs">
+        <button
+          type="button"
+          className={`spt-main-tab${tab === "tickets" ? " spt-main-tab--active" : ""}`}
+          onClick={() => setTab("tickets")}
+        >
+          Support Tickets
+        </button>
+        <button
+          type="button"
+          className={`spt-main-tab${tab === "why-blocked" ? " spt-main-tab--active" : ""}`}
+          onClick={() => setTab("why-blocked")}
+        >
+          Why Blocked?
+        </button>
+      </div>
+
+      {tab === "why-blocked" ? (
+        <WhyBlockedLookup />
+      ) : (
+      <>
       <div className="spt-kpi-row">
         {[
           { label: "Total",       val: counts.all,        cls: "total"    },
@@ -669,7 +913,7 @@ function PartnerTicketList({ tickets, onNew }) {
                 </div>
               </div>
               <div className="spt-ticket-right">
-                <span className="spt-priority-pill" style={{ "--pri-color": getPriColor(t.priority) }}>
+                <span className="spt-priority-pill">
                   <span className="spt-priority-dot" />
                   {t.priority.charAt(0).toUpperCase() + t.priority.slice(1)}
                 </span>
@@ -679,6 +923,8 @@ function PartnerTicketList({ tickets, onNew }) {
           ))
         }
       </div>
+      </>
+      )}
     </div>
   );
 }

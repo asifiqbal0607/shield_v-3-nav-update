@@ -180,7 +180,7 @@ export default function TopNav({ role, setPage, onLogout }) {
                             <span className="tnav-notif-item-time">{t.time}</span>
                           </div>
                         </div>
-                        <span className="tnav-notif-pri-dot" style={{ "--pri": PRI_COLOR[t.priority] }} />
+                        <span className="tnav-notif-pri-dot" />
                       </div>
                     ))}
                   </div>

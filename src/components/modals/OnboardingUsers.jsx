@@ -403,6 +403,7 @@ const ADMIN_ACCOUNT_TYPES = [
   "Admin",
   "C - Admin",
   "Publisher",
+  "Sub Account",
   "Operation Admin",
   "Client Partner",
 ];
@@ -488,7 +489,7 @@ function FormHeader({ title, subtitle, onClose, onOpenGenerator = null }) {
 // ════════════════════════════════════════════════════════════════════════════
 //  ADMIN FORM
 // ════════════════════════════════════════════════════════════════════════════
-function AdminForm({ onClose, setPage }) {
+function AdminForm({ onClose, setPage, onAdd, clientAccounts = [] }) {
   const [name, setName] = useState("");
   const [emails, setEmails] = useState([""]);
   const [username, setUsername] = useState("");
@@ -503,6 +504,10 @@ function AdminForm({ onClose, setPage }) {
   const [cAdmin, setCAdmin] = useState("");
   const [client, setClient] = useState("");
   const [services, setServices] = useState([]);
+  const [mirroredAccount, setMirroredAccount] = useState(false);
+  const [parentClientOpt, setParentClientOpt] = useState("");
+  const [subServices, setSubServices] = useState([]);
+  const [publisherClients, setPublisherClients] = useState([]);
   const [assignedNet, setAssignedNet] = useState("");
   const [countries, setCountries] = useState("");
   const [adHocRule, setAdHocRule] = useState("No");
@@ -514,6 +519,62 @@ function AdminForm({ onClose, setPage }) {
   const handleClose = () => {
     if (onClose) onClose();
     else if (setPage) setPage("users");
+  };
+
+  const handleSave = () => {
+    if (!onAdd) return handleClose();
+
+    const primaryEmail = emails.map((e) => e.trim()).find(Boolean) || "";
+
+    const roleLabel =
+      accountType === "Supper Client"
+        ? "Supper Clients"
+        : accountType === "Client"
+          ? "Clients"
+          : accountType === "Admin"
+            ? "Admins"
+            : accountType === "C - Admin"
+              ? "C-Admins"
+              : accountType === "Publisher"
+                ? "Publisher"
+                : accountType === "Sub Account"
+                  ? "Sub Account"
+                  : accountType === "Operation Admin"
+                    ? "Operations"
+                    : accountType === "Client Partner"
+                      ? "Client Partner"
+                      : "Clients";
+
+    const newUser = {
+      id: `USR-${Date.now()}`,
+      name: (name || username || "New User").trim(),
+      email: primaryEmail || `${(username || "user").trim()}@shield.io`,
+      role: roleLabel,
+      region: countries || "ZA",
+      lastLogin: "Never",
+      sessions: 0,
+      status: "active",
+    };
+
+    if ((roleLabel === "Clients" || roleLabel === "C-Admins") && mirroredAccount) {
+      newUser.isMirrored = true;
+    }
+
+    if (roleLabel === "Clients") {
+      newUser.services = services;
+    }
+
+    if (roleLabel === "Sub Account") {
+      newUser.parentClientId = parentClientId || "";
+      newUser.services = subServices;
+    }
+
+    if (roleLabel === "Publisher") {
+      newUser.assignedClientIds = publisherClients.map(parseClientId).filter(Boolean);
+    }
+
+    onAdd(newUser);
+    handleClose();
   };
 
   const addEmail = () => setEmails((p) => [...p, ""]);
@@ -537,17 +598,47 @@ function AdminForm({ onClose, setPage }) {
   const isAdmin = accountType === "Admin";
   const isCAdmin = accountType === "C - Admin";
   const isPublisher = accountType === "Publisher";
+  const isSubAccount = accountType === "Sub Account";
   const isClientPartner = accountType === "Client Partner";
+
+  const CLIENT_ACCOUNT_OPTIONS =
+    clientAccounts.length > 0
+      ? clientAccounts.map((u) => `${u.id} - ${u.name}`)
+      : CLIENT_OPTIONS;
+
+  const parseClientId = (opt) => (opt || "").split(" - ")[0];
+  const parentClientId = parseClientId(parentClientOpt);
+  const parentClient =
+    clientAccounts.find((u) => u.id === parentClientId) ?? null;
+  const parentServiceOptions =
+    parentClient?.services?.length ? parentClient.services : SERVICE_OPTIONS;
+
+  useEffect(() => {
+    // Mirror only applies to Client / C-Admin account types.
+    if (!(isClient || isCAdmin)) setMirroredAccount(false);
+  }, [isClient, isCAdmin]);
+
+  useEffect(() => {
+    // Keep sub-account services limited to selected parent client.
+    setSubServices((prev) => prev.filter((s) => parentServiceOptions.includes(s)));
+  }, [parentClientOpt]);
 
   const showAdHocRule = isClient || isClientPartner;
   const showIPs = isClient;
   const showIPRanges = isClient;
-  const showClients = isAdmin || isCAdmin || isPublisher;
-  const showServices = isAdmin || isCAdmin || isClientPartner;
+  const showClientSingle = isAdmin || isCAdmin;
+  const showPublisherClients = isPublisher;
+  const showServices = isAdmin || isCAdmin || isClientPartner || isClient;
   const showNetworks = isAdmin || isCAdmin || isClientPartner;
   const showCountries = isAdmin || isPublisher || isClientPartner;
   const showCAdmins = isSupperClient || isPublisher;
   const showAccountPriv = isClient || isAdmin || isClientPartner;
+  const showMirroredToggle = isClient || isCAdmin;
+
+  const saveDisabled =
+    !name.trim() ||
+    emails.map((e) => e.trim()).every((e) => !e) ||
+    (isSubAccount && !parentClientId);
 
   return (
     <>
@@ -755,19 +846,116 @@ function AdminForm({ onClose, setPage }) {
             </Field>
           )}
 
-          {showClients && (
+          {showMirroredToggle && (
             <Field>
-              <Label>Clients</Label>
+              <Label>Mirrored Account</Label>
+              <div className="obf-check-row">
+                <input
+                  type="checkbox"
+                  id="obf-mirrored-cb"
+                  checked={mirroredAccount}
+                  onChange={(e) => setMirroredAccount(e.target.checked)}
+                />
+                <label htmlFor="obf-mirrored-cb" className="obf-check-label">
+                  Mark this account as mirrored
+                </label>
+              </div>
+            </Field>
+          )}
+
+          {isSubAccount && (
+            <Field>
+              <Label required>Parent Client Account</Label>
+              <Select
+                placeholder="Select parent client"
+                options={CLIENT_ACCOUNT_OPTIONS}
+                value={parentClientOpt}
+                onChange={(e) => setParentClientOpt(e.target.value)}
+              />
+            </Field>
+          )}
+
+          {isSubAccount && (
+            <Field>
+              <LabelRow>
+                <Label>Services (from parent)</Label>
+                <button
+                  type="button"
+                  className="obf-link-btn"
+                  onClick={() =>
+                    setSubServices(
+                      subServices.length === parentServiceOptions.length
+                        ? []
+                        : [...parentServiceOptions],
+                    )
+                  }
+                >
+                  {subServices.length === parentServiceOptions.length
+                    ? "Deselect All"
+                    : "Select All"}
+                </button>
+              </LabelRow>
+              <Select
+                placeholder="Select Service"
+                options={parentServiceOptions}
+                value={subServices[subServices.length - 1] ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setSubServices((prev) =>
+                    prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+                  );
+                }}
+              />
+            </Field>
+          )}
+
+          {showPublisherClients && (
+            <Field>
+              <LabelRow>
+                <Label>Assigned Clients</Label>
+                <button
+                  type="button"
+                  className="obf-link-btn"
+                  onClick={() =>
+                    setPublisherClients(
+                      publisherClients.length === CLIENT_ACCOUNT_OPTIONS.length
+                        ? []
+                        : [...CLIENT_ACCOUNT_OPTIONS],
+                    )
+                  }
+                >
+                  {publisherClients.length === CLIENT_ACCOUNT_OPTIONS.length
+                    ? "Deselect All"
+                    : "Select All"}
+                </button>
+              </LabelRow>
               <Select
                 placeholder="Select Client"
-                options={CLIENT_OPTIONS}
+                options={CLIENT_ACCOUNT_OPTIONS}
+                value={publisherClients[publisherClients.length - 1] ?? ""}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setPublisherClients((prev) =>
+                    prev.includes(v) ? prev.filter((x) => x !== v) : [...prev, v],
+                  );
+                }}
+              />
+            </Field>
+          )}
+
+          {showClientSingle && (
+            <Field>
+              <Label>Client</Label>
+              <Select
+                placeholder="Select Client"
+                options={CLIENT_ACCOUNT_OPTIONS}
                 value={client}
                 onChange={(e) => setClient(e.target.value)}
               />
             </Field>
           )}
 
-          {showServices && (
+          {showServices && !isSubAccount && (
             <Field>
               <LabelRow>
                 <Label>Services</Label>
@@ -788,7 +976,7 @@ function AdminForm({ onClose, setPage }) {
                 </button>
               </LabelRow>
               <Select
-                placeholder="Select Client"
+                placeholder="Select Service"
                 options={SERVICE_OPTIONS}
                 value={services[services.length - 1] ?? ""}
                 onChange={(e) => {
@@ -884,6 +1072,8 @@ function AdminForm({ onClose, setPage }) {
         saveLabel="Save"
         cancelLabel="Cancel"
         onCancel={handleClose}
+        onSave={handleSave}
+        saveDisabled={saveDisabled}
       />
     </>
   );
@@ -994,12 +1184,16 @@ function PartnerForm({ onClose, setPage }) {
 // ════════════════════════════════════════════════════════════════════════════
 //  MODAL WRAPPER  — role prop selects which form to render
 // ════════════════════════════════════════════════════════════════════════════
-export function AddUserModal({ onClose, role = "admin" }) {
+export function AddUserModal({
+  onClose,
+  role = "admin",
+  onAdd,
+  clientAccounts = [],
+}) {
   useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+    document.body.classList.add("modal-scroll-lock");
     return () => {
-      document.body.style.overflow = prev;
+      document.body.classList.remove("modal-scroll-lock");
     };
   }, []);
 
@@ -1011,9 +1205,13 @@ export function AddUserModal({ onClose, role = "admin" }) {
       <div className="ob-spinner-overlay">
         <div className={`ob-modal${isPartner ? " ob-modal--narrow" : ""}`}>
           {isPartner ? (
-            <PartnerForm onClose={onClose} />
+            <PartnerForm onClose={onClose} onAdd={onAdd} />
           ) : (
-            <AdminForm onClose={onClose} />
+            <AdminForm
+              onClose={onClose}
+              onAdd={onAdd}
+              clientAccounts={clientAccounts}
+            />
           )}
         </div>
       </div>

@@ -83,7 +83,7 @@ export function PieTooltip({ active, payload }) {
   };
 
   return (
-    <div className="ovb-tt" style={{ borderLeft: `3px solid ${color}` }}>
+    <div className="ovb-tt">
       <div className="ovb-tt-head">
         <span className="ovb-tt-name">{name}</span>
         <Delta today={value} prev={prevTotal} />
@@ -187,8 +187,8 @@ export function ChartContextMenu({ containerRef, data, title }) {
     if (!canvas) return;
     const win = window.open("", "_blank");
     win.document.write(
-      `<html><head><title>${title || "chart"}</title></head><body style="margin:0">` +
-        `<img src="${canvas.toDataURL("image/png")}" style="width:100%" onload="window.print();window.close()" /></body></html>`,
+      `<html><head><title>${title || "chart"}</title></head><body>` +
+        `<img src="${canvas.toDataURL("image/png")}" onload="window.print();window.close()" /></body></html>`,
     );
     win.document.close();
     setOpen(false);
@@ -219,8 +219,8 @@ export function ChartContextMenu({ containerRef, data, title }) {
     if (!canvas) return;
     const win = window.open("", "_blank");
     win.document.write(
-      `<html><head><title>${title || "chart"}</title></head><body style="margin:0">` +
-        `<img src="${canvas.toDataURL("image/png")}" style="width:100%" onload="window.print();window.close()" /></body></html>`,
+      `<html><head><title>${title || "chart"}</title></head><body>` +
+        `<img src="${canvas.toDataURL("image/png")}" onload="window.print();window.close()" /></body></html>`,
     );
     win.document.close();
     setOpen(false);
@@ -293,12 +293,6 @@ export function ChartContextMenu({ containerRef, data, title }) {
                 key={i}
                 onClick={item.action}
                 className="apk-dd-item"
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "#f1f5f9")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "none")
-                }
               >
                 {item.label}
               </button>

@@ -308,7 +308,6 @@ function ServiceCard({
           <div className="sps-svc-header">
             <span
               className="sps-color-dot"
-              style={{ "--c": partnerColor }}
             />
             <span className="sps-name-sm">{svc.name}</span>
           </div>
@@ -468,12 +467,10 @@ function PartnerGroup({ partner, services, days, allExpanded }) {
       <div
         onClick={() => setCollapsed((c) => !c)}
         className={`sps-partner-hd${collapsed ? " collapsed" : ""}`}
-        style={{ "--c": partner.color }}
       >
         <div className="sps-row-gap10">
           <div
             className="sps-partner-avatar"
-            style={{ "--c": partner.color }}
           >
             {partner.name[0]}
           </div>
@@ -559,7 +556,6 @@ function PartnerGroup({ partner, services, days, allExpanded }) {
           </button>
           <div
             className={`sps-collapse-arrow${collapsed ? " collapsed" : ""}`}
-            style={{ "--c": partner.color }}
           >
             ▼
           </div>
@@ -862,13 +858,11 @@ function CAdminGroup({ cadmin, days }) {
       <div
         onClick={() => setCollapsed((v) => !v)}
         className={`sps-cadmin-hd${collapsed ? "" : " open"}`}
-        style={{ "--c": cadmin.color }}
       >
         {/* Left: avatar + name */}
         <div className="sps-cadmin-row">
           <div
             className="sps-cadmin-avatar"
-            style={{ "--c": cadmin.color }}
           >
             {cadmin.name[0]}
           </div>
@@ -896,7 +890,7 @@ function CAdminGroup({ cadmin, days }) {
           ].map(({ label, val, color }) => (
             <div key={label} className="td-right">
               <div className="sps-micro">{label}</div>
-              <div className="sps-stat-val" style={{ "--c": color }}>{val}</div>
+              <div className="sps-stat-val">{val}</div>
             </div>
           ))}
           <button onClick={handleExport} className="sps-row-gap5">
@@ -904,7 +898,6 @@ function CAdminGroup({ cadmin, days }) {
           </button>
           <div
             className={`sps-collapse-arrow${collapsed ? " collapsed" : ""}`}
-            style={{ "--c": cadmin.color }}
           >
             ▼
           </div>

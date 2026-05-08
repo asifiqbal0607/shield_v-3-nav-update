@@ -127,12 +127,12 @@ export default function AppLayout({
                   <div className="app-cap-inline">
                     <span className="app-cap-inline-icon">Cap</span>
                     <span className="app-cap-inline-divider" />
-                    <span className="app-cap-inline-used" style={{ color: col }}>{fmt(used)}</span>
+                    <span className="app-cap-inline-used">{fmt(used)}</span>
                     <span className="app-cap-inline-sep">/</span>
                     <span className="app-cap-inline-total">{fmt(capLimit.value)}</span>
                     <span className="app-cap-inline-period">per {capLimit.period}</span>
                     <span className="app-cap-inline-divider" />
-                    <span className="app-cap-inline-pct" style={{ color: col }}>{pct}%</span>
+                    <span className="app-cap-inline-pct">{pct}%</span>
                   </div>
                 );
               })()}
@@ -168,11 +168,6 @@ export default function AppLayout({
               type="button"
               className="app-filter-btn"
               onClick={() => setFilterOpen((v) => !v)}
-              style={{
-                "--fb-bdr": filterOpen ? "1px solid #bfdbfe" : "1px solid var(--border)",
-                "--fb-bg": filterOpen ? "#eff6ff" : "var(--bg-card)",
-                "--fb-clr": filterOpen ? "#1d4ed8" : "var(--text-3)",
-              }}
             >
               <FiltersIcon size={14} />
               Filters

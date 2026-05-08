@@ -734,7 +734,7 @@ function TddActivityIcon({ label }) {
   if (l === "COMPLETED") return <span>✓</span>;
   if (l === "VISIBLE") return <span>👁</span>;
   if (l === "INPUT")
-    return <span style={{ fontStyle: "italic", fontWeight: 900 }}>I</span>;
+    return <span>I</span>;
   if (["POINTERDOWN", "POINTERUP", "MOUSEDOWN", "MOUSEUP", "CLICK"].includes(l))
     return <span>⬤</span>;
   if (["TOUCHSTART", "TOUCHEND"].includes(l)) return <span>👆</span>;
@@ -1186,7 +1186,7 @@ export default function TransactionDetailModal({
                 className="tdd-adv-opt-btn"
                 onClick={() => { setShowAdvanced(false); onUserIp && onUserIp(d.userIp); }}
               >
-                <span className="tdd-adv-opt-dot" style={{ background: "#6366f1" }} />
+                <span className="tdd-adv-opt-dot" />
               IP
               </button>
 
@@ -1196,7 +1196,7 @@ export default function TransactionDetailModal({
                   className="tdd-adv-opt-btn"
                   onClick={() => setShowAdvanced(false)}
                 >
-                  <span className="tdd-adv-opt-dot" style={{ background: "#0891b2" }} />
+                  <span className="tdd-adv-opt-dot" />
                 Anomaly
                 </button>
               )}
@@ -1207,7 +1207,7 @@ export default function TransactionDetailModal({
                   className={`tdd-adv-opt-btn${showRaw ? " tdd-adv-opt-active" : ""}`}
                   onClick={() => { setShowAdvanced(false); setShowRaw((v) => !v); }}
                 >
-                  <span className="tdd-adv-opt-dot" style={{ background: "#d97706" }} />
+                  <span className="tdd-adv-opt-dot" />
                 Raw{showRaw ? " ✓" : ""}
                 </button>
               )}

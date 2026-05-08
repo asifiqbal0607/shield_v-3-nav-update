@@ -126,14 +126,7 @@ function GeoMap({ data, onCountryClick }) {
         onMouseLeave={handleMouseUp}
         onWheel={handleWheel}
       >
-        <div
-          className="geo-canvas-inner"
-          style={{
-            "--geo-zoom": zoom,
-            "--geo-x": `${pan.x}px`,
-            "--geo-y": `${pan.y}px`,
-          }}
-        >
+        <div className={`geo-canvas-inner geo-zoom-${Math.round(zoom * 100)}`}>
           <svg viewBox="0 0 600 420" className="map-img">
             <rect width="600" height="420" fill="#d6eaf8" rx="8" />
 
@@ -271,24 +264,28 @@ export default function PageGeo() {
             label: "Countries Reached",
             value: "12",
             color: BLUE,
+            tone: "cc-blue",
             clickable: false,
           },
           {
             label: "Top Country",
             value: "Sudan",
             color: ROSE,
+            tone: "cc-red",
             clickable: false,
           },
           {
             label: "Total Visits",
             value: "5,23,690",
             color: GREEN,
+            tone: "cc-emerald",
             clickable: true,
           },
           {
             label: "Total Clicks",
             value: "2,31,000",
             color: AMBER,
+            tone: "cc-amber",
             clickable: true,
           },
         ].map((s) => (
@@ -297,22 +294,9 @@ export default function PageGeo() {
             onClick={
               s.clickable ? () => open(`${s.label} — Transactions`) : undefined
             }
-            className={s.clickable ? "stat-card-click" : "stat-card-click-opt"}
-            style={{ "--c": s.color }}
-            onMouseEnter={
-              s.clickable
-                ? (e) =>
-                    (e.currentTarget.style.boxShadow =
-                      "0 4px 16px rgba(0,0,0,.1)")
-                : undefined
-            }
-            onMouseLeave={
-              s.clickable
-                ? (e) => (e.currentTarget.style.boxShadow = "")
-                : undefined
-            }
+            className={`${s.clickable ? "stat-card-click" : "stat-card-click-opt"} ${s.tone}`}
           >
-            <div className="kpi-stat-sm dyn-color" style={{ "--c": s.color }}>
+            <div className={`kpi-stat-sm dyn-color ${s.tone}`}>
               {s.value}
             </div>
             <div className="stat-lbl-12">{s.label}</div>
@@ -409,19 +393,10 @@ export default function PageGeo() {
                     key={i}
                     className="dt-tr"
                     onClick={() => open(`${r.country} — Transactions`)}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = "#f8fafc")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
                   >
                     <td className="td-p-num">
                       <div className="f-gap-7">
-                        <div
-                          className="color-square"
-                          style={{ "--c": PALETTE[i % PALETTE.length] }}
-                        />
+                        <div className={`color-square pie-palette-${i % PALETTE.length}`} />
                         {r.country}
                       </div>
                     </td>
@@ -434,13 +409,7 @@ export default function PageGeo() {
                     <td className="geo-td-blue">{r.pct}%</td>
                     <td className="geo-td-narrow">
                       <div className="progress-track">
-                        <div
-                          className="progress-bar"
-                          style={{
-                            "--w": `${r.pct}%`,
-                            "--c": PALETTE[i % PALETTE.length],
-                          }}
-                        />
+                        <div className={`progress-bar pie-palette-${i % PALETTE.length} ts-w-${Math.round(r.pct / 5) * 5}`} />
                       </div>
                     </td>
                   </tr>

@@ -105,8 +105,7 @@ function ApkPieCard({ title, data, onSliceClick, serviceFilter }) {
             onClick={() => onSliceClick && onSliceClick(d.name)}
           >
             <span
-              className="pie-legend-dot"
-              style={{ "--c": PALETTE[i % PALETTE.length] }}
+              className={`pie-legend-dot pie-palette-${i % PALETTE.length}`}
             />
             <span className="pie-legend-name">
               {d.name.length > 18 ? d.name.slice(0, 18) + "…" : d.name}
@@ -175,21 +174,16 @@ export default function PageAPKs({ role = "admin" }) {
     <div>
       <div className="g-stats3 mb-section">
         {[
-          { label: "Total APKs", value: "170", color: BLUE },
-          { label: "Clean APKs", value: "142", color: GREEN },
-          { label: "Flagged APKs", value: "28", color: ROSE },
+          { label: "Total APKs", value: "170", color: BLUE, tone: "cc-blue" },
+          { label: "Clean APKs", value: "142", color: GREEN, tone: "cc-emerald" },
+          { label: "Flagged APKs", value: "28", color: ROSE, tone: "cc-red" },
         ].map((s) => (
           <Card
             key={s.label}
             onClick={() => open(`${s.label} — Transactions`)}
-            className="stat-card-click"
-            style={{ "--c": s.color }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,.1)")
-            }
-            onMouseLeave={(e) => (e.currentTarget.style.boxShadow = "")}
+            className={`stat-card-click ${s.tone}`}
           >
-            <div className="dyn-color" style={{ "--c": s.color }}>
+            <div className={`dyn-color ${s.tone}`}>
               {s.value}
             </div>
             <div className="stat-lbl-12">{s.label}</div>
@@ -291,12 +285,6 @@ export default function PageAPKs({ role = "admin" }) {
                   key={i}
                   className="dt-tr"
                   onClick={() => open(`${r.name} — Transactions`)}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#f8fafc")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
                 >
                   <td className="apk-td-rank">{r.rank}</td>
                   <td className="apk-mono-cell">{r.name}</td>

@@ -56,7 +56,6 @@ function TooltipRow({ label, total, blocked, clean, blockRate, muted, badge }) {
       <div className="tt-progress">
         <div
           className="tt-progress-blocked"
-          style={{ width: `${(blockRate * 100).toFixed(1)}%` }}
         />
         <div className="tt-progress-clean" />
       </div>
@@ -73,7 +72,7 @@ function CustomTooltip({ active, payload, days }) {
   const prevLabel = days === 1 ? "Yesterday" : `Prev ${days}d`;
 
   return (
-    <div className="tt-wrap" style={{ "--tt-accent": color }}>
+    <div className="tt-wrap">
       <div className="tt-header">
         <span className="tt-name">{d.name}</span>
         <DeltaBadge value={d.trafficDelta} />
@@ -366,7 +365,6 @@ export default function ServicesTrafficChart({
             >
               <span
                 className="svc-chart-legend-dot"
-                style={{ background: PALETTE[entry.colorIdx % PALETTE.length] }}
               />
               <span className="svc-chart-legend-name">{entry.name}</span>
             </button>

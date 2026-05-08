@@ -44,7 +44,7 @@ export default function TinyDonut({ clicks, visits, pct, color = BLUE }) {
           transform={`rotate(-90 ${cx} ${cy})`}
         />
       </svg>
-      <div className="tiny-donut-label" style={{ "--c": fillA }}>{label}</div>
+      <div className="tiny-donut-label">{label}</div>
     </div>
   );
 }

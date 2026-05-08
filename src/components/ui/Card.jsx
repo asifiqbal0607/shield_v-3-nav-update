@@ -10,7 +10,7 @@ export default function Card({
   ...props
 }) {
   return (
-    <div className={`card ${className}`} style={style} {...props}>
+    <div className={`card ${className}`} {...props}>
       {children}
     </div>
   );

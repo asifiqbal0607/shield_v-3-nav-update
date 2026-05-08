@@ -59,7 +59,7 @@ export default function TaperedGauge({ needleT = NEEDLE_T, label = '500k' }) {
   const lHighRisk = polarPoint(START_DEG + TOTAL_DEG - 2,     130);
 
   return (
-    <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{ overflow: 'visible' }}>
+    <svg width="100%" viewBox={`0 0 ${W} ${H}`}>
       {/* Tick marks */}
       {ticks.map((deg, i) => {
         const a = polarPoint(deg, 104);

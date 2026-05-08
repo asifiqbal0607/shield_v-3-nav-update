@@ -180,7 +180,7 @@ function AlertsModal({ partner, alerts, onClose, onSave }) {
       <div className="partner-box partner-box--alerts">
         <div className="partner-modal-header">
           <div className="f-gap-14">
-            <div className="partner-avatar" style={{ "--bg": av.bg, "--c": av.c }}>
+            <div className="partner-avatar">
               {partner.name[0]}
             </div>
             <div>
@@ -321,7 +321,7 @@ function PartnerModal({ partner, onClose, onSave, onMarkInactive, alerts, onSave
       <div className="partner-box">
         <div className="partner-modal-header">
           <div className="f-gap-14">
-            <div className="partner-avatar" style={{ "--bg": av.bg, "--c": av.c }}>
+            <div className="partner-avatar">
               {partner.name[0]}
             </div>
             <div>
@@ -350,7 +350,7 @@ function PartnerModal({ partner, onClose, onSave, onMarkInactive, alerts, onSave
                 <div key={label} className="partner-detail-row">
                   <span className="stat-sublabel">{label}</span>
                   {label === "Status" ? (
-                    <span className="partner-status-badge" style={{ "--bg":statusBg(value), "--c":statusText(value) }}>{value}</span>
+                    <span className="partner-status-badge">{value}</span>
                   ) : label === "Type" ? (
                     <span className={`badge ${partner.type === "Aggregator" ? "badge-amber" : "badge-blue"}`}>{value}</span>
                   ) : (
@@ -554,7 +554,7 @@ function NodeCard({ node, isDragging, onDragStart }) {
     <div className={`ph-hier-node${isDragging?" ph-hier-dragging":""}${node.isDirectClient&&node.role==="csp"?" ph-hier-dual":""}`}
       draggable onDragStart={(e)=>onDragStart(e,node.id)}>
       <span className="ph-hier-handle">⠿</span>
-      <div className="partner-row-avatar partner-row-avatar--sm" style={{ "--bg": av.bg, "--c": av.c }}>
+      <div className="partner-row-avatar partner-row-avatar--sm">
         {node.name[0]}
       </div>
       <div className="ph-node-info">
@@ -581,7 +581,7 @@ function AggLane({ agg, children, onDrop, onDragOver, draggingId }) {
     <div className="ph-hier-lane">
       <div className="ph-hier-lane-hd">
         <div className="f-gap-10">
-          <div className="partner-row-avatar partner-row-avatar--md" style={{ "--bg": av.bg, "--c": av.c }}>
+          <div className="partner-row-avatar partner-row-avatar--md">
             {agg.name[0]}
           </div>
           <div>
@@ -626,7 +626,7 @@ function DirectSection({ nodes, onDrop, onDragOver, draggingId, onDragStart, onR
             <div key={n.id} className={`ph-hier-chip${draggingId===n.id?" ph-hier-dragging":""}`}
               draggable onDragStart={(e)=>onDragStart(e,n.id)}>
               <span className="ph-hier-handle">⠿</span>
-              <div className="partner-row-avatar partner-row-avatar--sm" style={{ "--bg": av.bg, "--c": av.c }}>
+              <div className="partner-row-avatar partner-row-avatar--sm">
                 {n.name[0]}
               </div>
               <div className="ph-node-info">
@@ -687,7 +687,7 @@ function HierarchyTab({ nodes, onReparent }) {
       {/* Legend */}
       <div className="ph-hier-legend">
         <div className="f-gap-8 ph-legend-align">
-          <span style={{width:8,height:8,borderRadius:"50%",background:"var(--color-primary)",display:"inline-block",flexShrink:0}}/>
+          <span/>
           <span className="stat-sublabel">Aggregator</span>
         </div>
         <div className="f-gap-8 ph-legend-align">
@@ -695,7 +695,7 @@ function HierarchyTab({ nodes, onReparent }) {
           <span className="stat-sublabel">Content Service Provider</span>
         </div>
         <div className="f-gap-8 ph-legend-align">
-          <span style={{width:8,height:8,borderRadius:"50%",background:"var(--color-success)",display:"inline-block",flexShrink:0}}/>
+          <span/>
           <span className="stat-sublabel">Direct client — standalone</span>
         </div>
         <div className="f-gap-8 ph-legend-align">
@@ -765,7 +765,7 @@ function ManageTab({ partners, setPartners, onAddClick, partnerAlerts, setPartne
           {label:"Inactive",       value:inactive, color:ROSE },
         ].map((s)=>(
           <Card key={s.label}>
-            <div className="kpi-stat" style={{ "--c": s.color }}>{s.value}</div>
+            <div className="kpi-stat">{s.value}</div>
             <div className="stat-label">{s.label}</div>
           </Card>
         ))}
@@ -800,13 +800,13 @@ function ManageTab({ partners, setPartners, onAddClick, partnerAlerts, setPartne
             ].map((s)=>(
               <div key={s.label}>
                 <div className="f-gap-8 manage-stat-row-lbl">
-                  <span style={{width:7,height:7,borderRadius:"50%",background:s.color,flexShrink:0,display:"inline-block"}}/>
+                  <span/>
                   <span className="manage-stat-lbl-txt">{s.label}</span>
                   <span className="manage-stat-count">{s.count}</span>
                   <span className="manage-stat-pct">{s.pct}%</span>
                 </div>
                 <div className="manage-stat-bar">
-                  <div style={{height:"100%",width:`${s.pct}%`,background:s.color,borderRadius:99}}/>
+                  <div/>
                 </div>
               </div>
             ))}
@@ -857,7 +857,7 @@ function ManageTab({ partners, setPartners, onAddClick, partnerAlerts, setPartne
                   <tr key={p.id} className="dt-tr" onClick={()=>setSelected(p)}>
                     <td className="p-sm">
                       <div className="f-gap-10">
-                        <div className="partner-row-avatar" style={{ "--bg": av.bg, "--c": av.c }}>{p.name[0]}</div>
+                        <div className="partner-row-avatar">{p.name[0]}</div>
                         <div>
                           <div className="txt-strong-sm">{p.name}</div>
                           <div className="txt-mono">{p.id}</div>
@@ -874,7 +874,7 @@ function ManageTab({ partners, setPartners, onAddClick, partnerAlerts, setPartne
                     </td>
                     <td className="td-p-mono">{p.revenue}</td>
                     <td className="p-sm">
-                      <span className="partner-status-badge" style={{"--bg":statusBg(p.status),"--c":statusText(p.status)}}>
+                      <span className="partner-status-badge">
                         {p.status}
                       </span>
                     </td>
@@ -971,7 +971,7 @@ export default function PagePartners() {
           <button key={t.key}
             className={`ph-tab${activeTab === t.key ? " ph-tab-active" : ""}`}
             onClick={() => setActiveTab(t.key)}>
-            <span className="ph-tab-pip" style={{ "--c": t.color }} />
+            <span className="ph-tab-pip" />
             {t.label}
           </button>
         ))}

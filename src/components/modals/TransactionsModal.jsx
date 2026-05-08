@@ -37,7 +37,7 @@ function RiskCell({ score }) {
         {score != null && <span className="txn-risk-score">{Math.round(score)}</span>}
       </div>
       <div className="txn-risk-bar">
-        <div className={`txn-risk-fill ${cls}`} style={{ '--fill-w': `${pct}%` }} />
+        <div className={`txn-risk-fill ${cls}`} />
       </div>
     </div>
   );
@@ -162,7 +162,6 @@ function ReasonCell({ reasons }) {
                 />
                 <div
                   className="txn-reason-popover"
-                  style={{ '--pop-top': `${pos.top}px`, '--pop-left': `${pos.left}px` }}
                 >
                   {extra.map((rsn) => (
                     <span

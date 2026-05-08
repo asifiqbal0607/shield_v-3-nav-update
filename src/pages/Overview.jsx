@@ -178,7 +178,7 @@ const BLOCK_REASONS = buildBlockReasons();
 const CHANNEL_DATA  = buildChannelData();
 const FRAUD_SCORE   = buildFraudScore();
 
-// ── Colour → CSS class (replaces all style={{ "--c": color }} inline styles) ──
+// ── Colour → CSS class (replaces all inline styles) ──
 const COLOR_CLASS = {
   "#22c55e": "cc-green",
   "#3b82f6": "cc-blue",
@@ -371,19 +371,19 @@ function CapLimitBanner({ capLimit }) {
         </div>
         <div className="cap-ov-divider" />
         <div className="cap-ov-stat">
-          <div className="cap-ov-stat-val" style={{ color: valColor }}>{fmtCap(used)}</div>
+          <div className="cap-ov-stat-val">{fmtCap(used)}</div>
           <div className="cap-ov-stat-lbl">used {period === "day" ? "today" : "this month"}</div>
         </div>
         <div className="cap-ov-divider" />
         <div className="cap-ov-usage">
           <div className="cap-ov-usage-row">
             <span className="cap-ov-usage-lbl">Usage</span>
-            <span className="cap-ov-usage-pct" style={{ color: valColor }}>{pct}%</span>
+            <span className="cap-ov-usage-pct">{pct}%</span>
           </div>
           <div className="cap-ov-bar-track">
-            <div className="cap-ov-bar-fill" style={{ width: `${pct}%`, background: barColor }} />
+            <div className="cap-ov-bar-fill" />
           </div>
-          <div className="cap-ov-usage-row" style={{ marginTop: 3 }}>
+          <div className="cap-ov-usage-row">
             <span className="cap-ov-remaining">{fmtCap(remaining)} remaining</span>
             <span className="cap-ov-period-badge">Per {period}</span>
           </div>

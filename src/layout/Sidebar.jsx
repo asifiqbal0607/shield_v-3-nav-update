@@ -65,7 +65,6 @@ const TOP_GROUPS = [
     roles: ["admin"],
     items: [
       { key: "ip-manager", label: "IP Manager" },
-      { key: "password-generator", label: "Password Generator" },
     ],
   },
   {

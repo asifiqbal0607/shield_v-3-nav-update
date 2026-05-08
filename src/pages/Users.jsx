@@ -84,7 +84,6 @@ function Modal({ title, subtitle, onClose, children, width = 520 }) {
       <div onClick={onClose} className="usr-backdrop" />
       <div
         className="usr-modal-box"
-        style={{ "--modal-w": `min(${width}px, 95vw)` }}
       >
         <div className="usr-modal-hdr">
           <div>
@@ -120,8 +119,6 @@ function FormInput({ label, defaultValue, type = "text" }) {
         type={type}
         defaultValue={defaultValue}
         className="usr-input"
-        onFocus={(e) => (e.currentTarget.style.borderColor = T)}
-        onBlur={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
       />
     </div>
   );
@@ -134,8 +131,6 @@ function FormSelect({ label, defaultValue, options }) {
       <select
         defaultValue={defaultValue}
         className="usr-input-white"
-        onFocus={(e) => (e.currentTarget.style.borderColor = T)}
-        onBlur={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
       >
         {options.map((o) => (
           <option key={o} value={o}>
@@ -149,7 +144,7 @@ function FormSelect({ label, defaultValue, options }) {
 
 function ActionBtn({ label, onClick }) {
   return (
-    <button onClick={onClick} className="usr-btn-save" style={{ "--c": T }}>
+    <button onClick={onClick} className="usr-btn-save">
       {label}
     </button>
   );
@@ -174,13 +169,6 @@ function ViewModal({ user, onClose }) {
       <div className="usr-preview-row">
         <div
           className="usr-avatar-lg"
-          style={{
-            "--bg": TYPE_COLORS[user.role]
-              ? `${TYPE_COLORS[user.role]}22`
-              : "#e2e8f0",
-            "--bdr": TYPE_COLORS[user.role] || "#cbd5e1",
-            "--c": TYPE_COLORS[user.role] || "#334155",
-          }}
         >
           {user.name[0]}
         </div>
@@ -189,12 +177,6 @@ function ViewModal({ user, onClose }) {
           <div className="txt-body">{user.email}</div>
           <span
             className="usr-role-badge"
-            style={{
-              "--bg": TYPE_COLORS[user.role]
-                ? `${TYPE_COLORS[user.role]}20`
-                : "#f1f5f9",
-              "--c": TYPE_COLORS[user.role] || "#64748b",
-            }}
           >
             {user.role}
           </span>
@@ -237,8 +219,6 @@ function EditModal({ user, onSave, onClose }) {
             value={form.name}
             onChange={set("name")}
             className="usr-input"
-            onFocus={(e) => (e.currentTarget.style.borderColor = T)}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
           />
         </div>
         <div className="mb-14">
@@ -248,8 +228,6 @@ function EditModal({ user, onSave, onClose }) {
             value={form.email}
             onChange={set("email")}
             className="usr-input"
-            onFocus={(e) => (e.currentTarget.style.borderColor = T)}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
           />
         </div>
         <div className="mb-14">
@@ -258,8 +236,6 @@ function EditModal({ user, onSave, onClose }) {
             value={form.role}
             onChange={set("role")}
             className="usr-input-white"
-            onFocus={(e) => (e.currentTarget.style.borderColor = T)}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
           >
             {USER_TYPES.filter((t) => t !== "All").map((o) => (
               <option key={o}>{o}</option>
@@ -272,8 +248,6 @@ function EditModal({ user, onSave, onClose }) {
             value={form.region}
             onChange={set("region")}
             className="usr-input"
-            onFocus={(e) => (e.currentTarget.style.borderColor = T)}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
           />
         </div>
         <div className="mb-14">
@@ -282,8 +256,6 @@ function EditModal({ user, onSave, onClose }) {
             value={form.status}
             onChange={set("status")}
             className="usr-input-white"
-            onFocus={(e) => (e.currentTarget.style.borderColor = T)}
-            onBlur={(e) => (e.currentTarget.style.borderColor = "#e2e8f0")}
           >
             {["active", "warning", "blocked"].map((o) => (
               <option key={o}>{o}</option>
@@ -413,10 +385,6 @@ function UpdateStatusModal({ user, onSave, onClose }) {
           <label
             key={s.value}
             className="usr-perm-opt"
-            style={{
-              "--bdr": selected === s.value ? s.color : "#e2e8f0",
-              "--bg": selected === s.value ? s.bg : "#f8fafc",
-            }}
           >
             <input
               type="radio"
@@ -424,10 +392,9 @@ function UpdateStatusModal({ user, onSave, onClose }) {
               checked={selected === s.value}
               onChange={() => setSelected(s.value)}
               className="perm-check usr-radio-accent"
-              style={{ "--ac": s.color }}
             />
             <div>
-              <div className="stat-num-val" style={{ "--c": s.color }}>
+              <div className="stat-num-val">
                 {s.label}
               </div>
               <div className="txt-body-mt">{s.desc}</div>
@@ -462,7 +429,7 @@ function ClearHistoryModal({ user, onClear, onClose }) {
       {!done ? (
         <>
           <div className="alert-danger">
-            <div className="alert-title dyn-color" style={{ "--c": "#dc2626" }}>
+            <div className="alert-title dyn-color">
               ⚠️ This action cannot be undone
             </div>
             <div className="alert-body">
@@ -560,7 +527,7 @@ function DeleteModal({ user, onDelete, onClose }) {
       width={400}
     >
       <div className="alert-danger">
-        <div className="alert-title dyn-color" style={{ "--c": "#dc2626" }}>
+        <div className="alert-title dyn-color">
           ⚠️ Cannot be undone
         </div>
         <div className="alert-body">
@@ -748,7 +715,7 @@ function CapLimitModal({ user, existing, onSave, onClose }) {
       {/* Footer */}
       <div className="usr-action-row-end">
         <button onClick={onClose} className="usr-btn-cancel">Cancel</button>
-        <button onClick={handleSave} className="usr-btn-save" style={{ "--c": "#0891b2" }}>
+        <button onClick={handleSave} className="usr-btn-save">
           {saved ? "✓ Saved" : "Save Cap Limit"}
         </button>
       </div>
@@ -865,13 +832,6 @@ function UserActions({
             title={a.title}
             onClick={() => openModal(a.key)}
             className="usr-action-icon"
-            style={{ "--bg": `${a.color}15`, "--c": a.color }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.background = `${a.color}30`)
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.background = `${a.color}15`)
-            }
           >
             {a.icon}
           </button>
@@ -903,13 +863,6 @@ function UserActions({
               <div
                 ref={menuRef}
                 className="usr-action-menu"
-                style={{
-                  position: "fixed",
-                  top: coords.top ?? "auto",
-                  bottom: coords.bottom ?? "auto",
-                  right: coords.right,
-                  zIndex: 99999,
-                }}
               >
                 <div className="usr-action-hdr">
                   <div className="txt-strong">{user.name}</div>
@@ -923,7 +876,6 @@ function UserActions({
                   >
                     <span
                       className="usr-action-icon"
-                      style={{ "--bg": `${a.color}15`, "--c": a.color }}
                     >
                       {a.icon}
                     </span>
@@ -934,12 +886,6 @@ function UserActions({
                 <button
                   onClick={() => openModal("delete")}
                   className="usr-action-item"
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.background = "#fef2f2")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.background = "transparent")
-                  }
                 >
                   <span className="usr-action-icon-del">🗑</span>
                   <span className="txt-danger">Delete User</span>
@@ -982,16 +928,13 @@ function ActiveInactiveTabs({ value, onChange, activeCount, inactiveCount }) {
             key={key}
             onClick={() => onChange(key)}
             className={`svc-tab-btn ${on ? "on" : "off"}`}
-            style={{ "--c": color }}
           >
             <span
               className={`svc-tab-dot ${on ? "on" : "off"}`}
-              style={{ "--c": dot }}
             />
             {label}
             <span
               className={`svc-tab-pill ${on ? "on" : "off"}`}
-              style={{ "--bg": bg, "--c": color }}
             >
               {count}
             </span>
@@ -1084,8 +1027,10 @@ export default function PageUsers({ role = "admin", setPage }) {
   };
 
   const [addModal, setAddModal] = useState(false);
-  const handleAddUser = () => {
-    // placeholder — in real app would collect form data
+  const handleAddUser = (user) => {
+    if (!user) return;
+    setUsers((prev) => [user, ...prev]);
+    if (user.email) addAudit(user.email, 'Account created', role);
   };
 
   const isActiveStatus = (u) => u.status === "active";
@@ -1094,7 +1039,12 @@ export default function PageUsers({ role = "admin", setPage }) {
   const filtered = users.filter((u) => {
     const matchStatus =
       statusTab === "active" ? isActiveStatus(u) : isInactiveStatus(u);
-    const matchType = activeType === "All" || u.role === activeType;
+    const matchType =
+      activeType === "All"
+        ? true
+        : activeType === "Mirrored"
+          ? u.isMirrored === true
+          : u.role === activeType;
     const matchQuery =
       u.name.toLowerCase().includes(query.toLowerCase()) ||
       u.email.toLowerCase().includes(query.toLowerCase());
@@ -1149,7 +1099,6 @@ export default function PageUsers({ role = "admin", setPage }) {
             </div>
             <button
               className="usr-btn-save"
-              style={{ "--c": T }}
               onClick={() => setAddModal(true)}
             >
               ⊕ New Account
@@ -1175,24 +1124,13 @@ export default function PageUsers({ role = "admin", setPage }) {
               <div
                 key={u.id}
                 className="usr-partner-card"
-                style={{ "--bdr": u.status ? "#e8ecf3" : "#fee2e2" }}
               >
                 <div
                   className="usr-partner-row"
-                  style={{
-                    "--bb": isExpanded ? "1px solid #f1f5f9" : "none",
-                    "--bg": u.status ? "#fff" : "#fff9f9",
-                  }}
                 >
                   <div className="usr-table-cell">
                     <div
                       className="usr-partner-avatar"
-                      style={{
-                        "--bg": u.status
-                          ? "linear-gradient(135deg,#0d9488,#0891b2)"
-                          : "#f1f5f9",
-                        "--c": u.status ? "#fff" : "#94a3b8",
-                      }}
                     >
                       {u.name.slice(0, 3)}
                     </div>
@@ -1217,11 +1155,9 @@ export default function PageUsers({ role = "admin", setPage }) {
                     <div
                       onClick={() => handlePartnerToggle(u.id)}
                       className="usr-toggle"
-                      style={{ "--c": u.status ? T : "#cbd5e1" }}
                     >
                       <div
                         className="usr-toggle-thumb"
-                        style={{ "--left": u.status ? "23px" : "3px" }}
                       />
                     </div>
                   </div>
@@ -1230,7 +1166,6 @@ export default function PageUsers({ role = "admin", setPage }) {
                       <span
                         key={svc}
                         className="usr-svc-tag"
-                        style={{ "--c": T }}
                       >
                         {svc}
                       </span>
@@ -1239,7 +1174,6 @@ export default function PageUsers({ role = "admin", setPage }) {
                       <button
                         onClick={() => toggleAccount(u.id)}
                         className="usr-svc-add"
-                        style={{ "--c": T }}
                       >
                         {isExpanded ? "▲ Less" : `+${rest.length} more`}
                       </button>
@@ -1275,12 +1209,10 @@ export default function PageUsers({ role = "admin", setPage }) {
                           <div
                             key={svc}
                             className="usr-perm-item"
-                            style={{ "--bdr": isTrue ? "#99f6e4" : "#fecaca" }}
                           >
                             <span>{svc.replace(/ - (True|False)$/, "")}</span>
                             <span
                               className="usr-perm-badge"
-                              style={{ "--c": isTrue ? T : "#dc2626" }}
                             >
                               {isTrue ? "True" : "False"}
                             </span>
@@ -1327,7 +1259,7 @@ export default function PageUsers({ role = "admin", setPage }) {
           //   color: ROSE,
           // },
         ].map(({ label, value, color }) => (
-          <Card key={label} className="stat-top-4" style={{ "--c": color }}>
+          <Card key={label} className="stat-top-4">
             <div className="kpi-stat">{value}</div>
             <div className="stat-sublabel">{label}</div>
           </Card>
@@ -1376,7 +1308,7 @@ export default function PageUsers({ role = "admin", setPage }) {
             <div className="usr-legend-item">
               {TYPE_COUNTS.map((t) => (
                 <div key={t.label} className="f-gap-7">
-                  <div className="usr-legend-dot" style={{ "--c": t.color }} />
+                  <div className="usr-legend-dot" />
                   <span className="usr-legend-count">{t.count}</span>
                   <span className="usr-legend-name">{t.label}</span>
                 </div>
@@ -1436,11 +1368,6 @@ export default function PageUsers({ role = "admin", setPage }) {
                 key={t}
                 onClick={() => setActiveType(t)}
                 className="usr-perm-filter-pill"
-                style={{
-                  "--bdr": color,
-                  "--bg": isActive ? color : "#fff",
-                  "--c": isActive ? "#fff" : "#64748b",
-                }}
               >
                 {t}
               </button>
@@ -1485,13 +1412,6 @@ export default function PageUsers({ role = "admin", setPage }) {
                     <div className="usr-td-user">
                       <div
                         className="usr-avatar-sm"
-                        style={{
-                          "--bg": TYPE_COLORS[u.role]
-                            ? `${TYPE_COLORS[u.role]}22`
-                            : "#e2e8f0",
-                          "--bdr": TYPE_COLORS[u.role] || "#cbd5e1",
-                          "--c": TYPE_COLORS[u.role] || "#334155",
-                        }}
                       >
                         {u.name[0]}
                       </div>
@@ -1500,7 +1420,14 @@ export default function PageUsers({ role = "admin", setPage }) {
                   </td>
                   <td className="td-p-10s">{u.email}</td>
                   <td>
-                    <Badge color={TYPE_COLORS[u.role] || BLUE}>{u.role}</Badge>
+                    <div className="usr-type-badges">
+                      <Badge color={TYPE_COLORS[u.role] || BLUE}>{u.role}</Badge>
+                      {u.isMirrored === true && (
+                        <Badge color={TYPE_COLORS.Mirrored || "#6366f1"}>
+                          Mirrored
+                        </Badge>
+                      )}
+                    </div>
                   </td>
                   <td className="dt-td">{u.region}</td>
                   <td className="td-p-10s">{u.lastLogin}</td>
@@ -1508,7 +1435,6 @@ export default function PageUsers({ role = "admin", setPage }) {
                     <div className="usr-td-status">
                       <span
                         className="usr-status-dot"
-                        style={{ "--c": statusColor(u.status) }}
                       />
                       <span className="txt-cap">{u.status}</span>
                     </div>
@@ -1554,11 +1480,13 @@ export default function PageUsers({ role = "admin", setPage }) {
 
       {addModal && (
         <AddUserModal
-          onAdd={() => handleAddUser()}
+          onAdd={handleAddUser}
           onClose={() => setAddModal(false)}
           role={role}
+          clientAccounts={users.filter((u) => u.role === "Clients")}
         />
       )}
     </div>
   );
 }
+
