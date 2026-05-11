@@ -19,7 +19,7 @@ import {
   DownloadIcon,
 } from "../components/ui/Icons";
 import { repTrend } from "../data/charts";
-import { repReports } from "../data/tables";
+import { repReports, userRows } from "../data/tables";
 
 /* ── Static config ───────────────────────────────────────────────────────── */
 const SUMMARY_STATS = (reports) => [
@@ -101,14 +101,203 @@ const SERVICES = [
 const today = new Date().toISOString().split("T")[0];
 const thirtyAgo = new Date(Date.now() - 30 * 864e5).toISOString().split("T")[0];
 
-/* ── New Report Modal ────────────────────────────────────────────────────── */
-function NewReportModal({ onClose, onSave, role, partnerName }) {
-  const isAdmin = role === "admin";
+function getDemoCAdminAccount() {
+  return userRows.find((u) => u.role === "C-Admins" && u.serviceOnboardingEnabled) || null;
+}
 
-  // Admin steps: 1=Partner, 2=Report Type, 3=Filters & Date, 4=On-Demand Report
-  // Partner steps: 1=Report Type, 2=Filters & Date, 3=On-Demand Report
-  const STEPS = isAdmin
-    ? ["Select Partner", "Report Type", "Filters & Date", "On-Demand Report"]
+function getAdminReportOwners() {
+  const demoClientIds = new Set(["USR-051", "USR-052", "USR-053"]);
+  const clientOwners = userRows
+    .filter((u) => u.role === "Clients" && demoClientIds.has(u.id))
+    .map((client) => ({
+      id: client.id,
+      name: client.name,
+      ownerRole: "client",
+    }));
+  const cAdmin = getDemoCAdminAccount();
+  const cAdminOwners = cAdmin
+    ? [{ id: cAdmin.id, name: cAdmin.name, ownerRole: "c-admin" }]
+    : [];
+
+  return [...clientOwners, ...cAdminOwners];
+}
+
+function getCAdminReportOwners() {
+  const cAdmin = getDemoCAdminAccount();
+  if (!cAdmin) return [];
+
+  const ownAccount = {
+    id: cAdmin.id,
+    name: cAdmin.name,
+    ownerRole: "c-admin",
+  };
+  const assignedClients = (cAdmin.assignedClientIds || [])
+    .map((clientId) => userRows.find((u) => u.id === clientId && u.role === "Clients"))
+    .filter(Boolean)
+    .map((client) => ({
+      id: client.id,
+      name: client.name,
+      ownerRole: "client",
+    }));
+
+  return [ownAccount, ...assignedClients];
+}
+
+function getReportingAccount(role) {
+  if (role === "c-admin") {
+    const cAdmin = getDemoCAdminAccount();
+    return {
+      id: cAdmin?.id || "c-admin-demo",
+      name: cAdmin?.name || "C-Admin",
+      ownerRole: "c-admin",
+    };
+  }
+
+  if (role === "partner") {
+    return {
+      id: "client-vodacom",
+      name: "Vodacom",
+      ownerRole: "client",
+    };
+  }
+
+  return {
+    id: "admin",
+    name: "Shield Admin",
+    ownerRole: "admin",
+  };
+}
+
+function withReportOwner(report, owner) {
+  return {
+    ...report,
+    ownerRole: owner.ownerRole,
+    ownerId: owner.id,
+    ownerName: owner.name,
+  };
+}
+
+function buildInitialReports(role) {
+  const account = getReportingAccount(role);
+
+  if (role === "admin") {
+    const adminOwners = getAdminReportOwners();
+    const [trueDigital, gvi, teleinfotech, cAdmin] = adminOwners;
+    return [
+      withReportOwner(repReports[0], trueDigital || account),
+      withReportOwner(repReports[1], gvi || account),
+      withReportOwner(repReports[2], teleinfotech || account),
+      withReportOwner(repReports[3], cAdmin || account),
+      withReportOwner(
+        {
+          name: "True Digital Traffic Overview",
+          type: "On-demand",
+          freq: "Manual",
+          lastRun: "Today 08:10",
+          rows: "18,450",
+          status: "active",
+        },
+        trueDigital || account,
+      ),
+      withReportOwner(
+        {
+          name: "Liam Patel Assigned Client Summary",
+          type: "On-demand",
+          freq: "Manual",
+          lastRun: "Today 07:35",
+          rows: "7,120",
+          status: "active",
+        },
+        cAdmin || account,
+      ),
+    ];
+  }
+
+  if (role === "c-admin") {
+    const cAdminOwners = getCAdminReportOwners();
+    const [cAdminOwner, trueDigital, gvi] = cAdminOwners;
+    return [
+      withReportOwner(
+        {
+          name: "Assigned Clients Traffic Overview",
+          type: "On-demand",
+          freq: "Manual",
+          lastRun: "Today 07:35",
+          rows: "7,120",
+          status: "active",
+        },
+        cAdminOwner || account,
+      ),
+      withReportOwner(
+        {
+          name: "Assigned Services Block Summary",
+          type: "Scheduled",
+          freq: "Daily",
+          lastRun: "Today 06:00",
+          rows: "2,840",
+          status: "active",
+        },
+        cAdminOwner || account,
+      ),
+      withReportOwner(
+        {
+          name: "True Digital Traffic Overview",
+          type: "Scheduled",
+          freq: "Daily",
+          lastRun: "Today 06:00",
+          rows: "3,540",
+          status: "active",
+        },
+        trueDigital || account,
+      ),
+      withReportOwner(
+        {
+          name: "GVI Block Summary",
+          type: "On-demand",
+          freq: "Manual",
+          lastRun: "Yesterday",
+          rows: "1,480",
+          status: "active",
+        },
+        gvi || account,
+      ),
+    ];
+  }
+
+  return [
+    withReportOwner(
+      {
+        name: `${account.name} Traffic Overview`,
+        type: "Scheduled",
+        freq: "Daily",
+        lastRun: "Today 06:00",
+        rows: "18,450",
+        status: "active",
+      },
+      account,
+    ),
+    withReportOwner(
+      {
+        name: `${account.name} Block Summary`,
+        type: "On-demand",
+        freq: "Manual",
+        lastRun: "Yesterday",
+        rows: "4,250",
+        status: "active",
+      },
+      account,
+    ),
+  ];
+}
+
+/* ── New Report Modal ────────────────────────────────────────────────────── */
+function NewReportModal({ onClose, onSave, role, partnerName, reportOwnerOptions = [] }) {
+  const isAdmin = role === "admin";
+  const isCAdmin = role === "c-admin";
+
+  const hasAccountSelection = isAdmin || isCAdmin;
+  const STEPS = hasAccountSelection
+    ? ["Select Account", "Report Type", "Filters & Date", "On-Demand Report"]
     : ["Report Type", "Filters & Date", "On-Demand Report"];
 
   const [step, setStep] = useState(1);
@@ -116,13 +305,19 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
   const [dateFrom, setDateFrom] = useState(thirtyAgo);
   const [dateTo, setDateTo] = useState(today);
   const [datePreset, setDatePreset] = useState("30d");
-  const [partner, setPartner] = useState(isAdmin ? "" : partnerName || "");
+  const [partner, setPartner] = useState(
+    hasAccountSelection ? reportOwnerOptions[0]?.id || "" : partnerName || "",
+  );
   const [service, setService] = useState("All Services");
   const [frequency, setFrequency] = useState("One-time");
   const [format, setFormat] = useState("CSV");
   const [reportName, setReportName] = useState("");
   const [saving, setSaving] = useState(false);
   const [done, setDone] = useState(false);
+  const selectedReportOwner = hasAccountSelection
+    ? reportOwnerOptions.find((owner) => owner.id === partner) || null
+    : null;
+  const selectedOwnerName = selectedReportOwner?.name || partner || "";
 
   const applyPreset = (preset) => {
     setDatePreset(preset);
@@ -150,7 +345,10 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
       reportType,
       dateFrom,
       dateTo,
-      partner,
+      partner: selectedOwnerName,
+      ownerId: selectedReportOwner?.id,
+      ownerRole: selectedReportOwner?.ownerRole,
+      ownerName: selectedReportOwner?.name,
       service,
       frequency,
       format,
@@ -161,7 +359,7 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
 
   // Per-step validation
   const canNext = () => {
-    if (isAdmin) {
+    if (hasAccountSelection) {
       if (step === 1) return !!partner;
       if (step === 2) return !!reportType && !!reportName.trim();
       if (step === 3) return !!dateFrom && !!dateTo;
@@ -179,7 +377,7 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
 
   // Which logical section is this step?
   const getStepType = () => {
-    if (isAdmin)
+    if (hasAccountSelection)
       return ["partner", "reporttype", "filters", "schedule"][step - 1];
     return ["reporttype", "filters", "schedule"][step - 1];
   };
@@ -196,8 +394,8 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
           <div>
             <div className="nr-title">Generate New Report</div>
             <div className="nr-subtitle">
-              {isAdmin
-                ? "Select a partner, then configure the report"
+              {hasAccountSelection
+                ? "Select an account, then configure the report"
                 : "Configure filters and schedule for your report"}
             </div>
           </div>
@@ -229,17 +427,20 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
           {/* ── Admin Step 1: Partner selection ── */}
           {stepType === "partner" && (
             <div>
-              <div className="nr-section-title">Select Partner</div>
+              <div className="nr-section-title">Select Account</div>
               <div className="nr-partner-grid">
-                {PARTNERS.filter((p) => p !== "All Partners").map((p) => (
+                {reportOwnerOptions.map((owner) => (
                   <div
-                    key={p}
-                    className={`nr-partner-card${partner === p ? " selected" : ""}`}
-                    onClick={() => setPartner(p)}
+                    key={owner.id}
+                    className={`nr-partner-card${partner === owner.id ? " selected" : ""}`}
+                    onClick={() => setPartner(owner.id)}
                   >
-                    <div className="nr-partner-avatar">{p.charAt(0)}</div>
-                    <div className="nr-partner-name">{p}</div>
-                    {partner === p && (
+                    <div className="nr-partner-avatar">{owner.name.charAt(0)}</div>
+                    <div className="nr-partner-name">{owner.name}</div>
+                    <div className="nr-type-desc">
+                      {owner.ownerRole === "c-admin" ? "C-Admin" : "Client"}
+                    </div>
+                    {partner === owner.id && (
                       <div className="nr-type-check">
                         <CheckIcon size={10} />
                       </div>
@@ -254,8 +455,8 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
           {stepType === "reporttype" && (
             <div>
               <div className="nr-section-title">
-                {isAdmin && partner
-                  ? `Report for ${partner}`
+                {hasAccountSelection && partner
+                  ? `Report for ${selectedOwnerName}`
                   : "Select Report Type"}
               </div>
               <div className="nr-type-grid">
@@ -344,14 +545,13 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
               <div className="nr-divider" />
               <div className="nr-section-title">Filters</div>
               <div className="nr-filters-grid">
-                {/* Admin: partner was chosen in step 1 (shown as summary, no lock)
-                    Partner: pre-filled from session and locked */}
+                {/* Admin: partner was chosen in step 1. Client/C-Admin account is locked. */}
                 <div className="nr-field">
-                  <label className="nr-label">Partner</label>
-                  {isAdmin ? (
+                  <label className="nr-label">{isCAdmin ? "Account" : "Partner"}</label>
+                  {hasAccountSelection ? (
                     <div className="nr-input nr-readonly">
                       <span className="nr-readonly-dot" />
-                      {partner || "All Partners"}
+                      {selectedOwnerName || "Select account"}
                     </div>
                   ) : (
                     <div className="nr-input nr-readonly">
@@ -387,7 +587,7 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
                 {partner && partner !== "All Partners" && (
                   <span className="nr-filter-chip">
                     <span>🤝</span>
-                    {partner}
+                    {selectedOwnerName}
                   </span>
                 )}
                 {service !== "All Services" && (
@@ -476,10 +676,10 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
                     <span>Type</span>
                     <strong>{selectedType?.label}</strong>
                   </div>
-                  {isAdmin && (
+                  {(isAdmin || isCAdmin) && (
                     <div className="nr-summary-row">
-                      <span>Partner</span>
-                      <strong>{partner}</strong>
+                      <span>Account</span>
+                      <strong>{selectedOwnerName}</strong>
                     </div>
                   )}
                   <div className="nr-summary-row">
@@ -542,27 +742,45 @@ function NewReportModal({ onClose, onSave, role, partnerName }) {
 
 /* ── Main page ────────────────────────────────────────────────────────────── */
 export default function PageReporting({ role = "admin" }) {
-  // In a real app this comes from auth session; mock it here
-  const sessionPartnerName = role === "partner" ? "Vodacom" : "";
+  const reportingAccount = getReportingAccount(role);
+  const adminReportOwners = getAdminReportOwners();
+  const cAdminReportOwners = getCAdminReportOwners();
+  const reportOwnerOptions = role === "c-admin" ? cAdminReportOwners : adminReportOwners;
+  const cAdminAllowedOwnerIds = new Set(cAdminReportOwners.map((owner) => owner.id));
+  const sessionAccountName = role === "admin" ? "" : reportingAccount.name;
   const [query, setQuery] = useState("");
   const [perPageRep, setPerPageRep] = useState(10);
   const [showNewReport, setShowNewReport] = useState(false);
-  const [reports, setReports] = useState(repReports);
+  const [reports, setReports] = useState(() => buildInitialReports(role));
 
-  const filteredRep = reports.filter(
+  const scopedReports =
+    role === "admin"
+      ? reports
+      : role === "c-admin"
+        ? reports.filter((report) => cAdminAllowedOwnerIds.has(report.ownerId))
+        : reports.filter((report) => report.ownerId === reportingAccount.id);
+  const filteredRep = scopedReports.filter(
     (r) =>
       r.name.toLowerCase().includes(query.toLowerCase()) ||
-      r.type.toLowerCase().includes(query.toLowerCase()),
+      r.type.toLowerCase().includes(query.toLowerCase()) ||
+      (r.ownerName || "").toLowerCase().includes(query.toLowerCase()) ||
+      (r.ownerRole || "").toLowerCase().includes(query.toLowerCase()),
   );
   const visibleRep = filteredRep.slice(0, perPageRep);
 
   const handleSave = (data) => {
+    const targetOwner = role === "admin" || role === "c-admin"
+      ? reportOwnerOptions.find((owner) => owner.id === data.ownerId) || reportingAccount
+      : reportingAccount;
     setReports((prev) => [
       {
         name: data.reportName,
         type: data.frequency === "One-time" ? "On-demand" : "Scheduled",
         freq: "Manual",
         lastRun: "Just now",
+        ownerRole: targetOwner.ownerRole,
+        ownerId: targetOwner.id,
+        ownerName: targetOwner.name,
         rows: "—",
         status: "active",
       },
@@ -577,13 +795,14 @@ export default function PageReporting({ role = "admin" }) {
           onClose={() => setShowNewReport(false)}
           onSave={handleSave}
           role={role}
-          partnerName={sessionPartnerName}
+          partnerName={sessionAccountName}
+          reportOwnerOptions={reportOwnerOptions}
         />
       )}
 
       {/* Summary stats */}
       <div className="grid-2 mb-24">
-        {SUMMARY_STATS(reports).map(({ label, value, colorClass }) => (
+        {SUMMARY_STATS(scopedReports).map(({ label, value, colorClass }) => (
           <Card key={label} className={`stat-top-4 rep-stat-card`}>
             <div className={`kpi-stat rep-stat-val ${colorClass}`}>{value}</div>
             <div className="stat-sublabel">{label}</div>
@@ -625,8 +844,8 @@ export default function PageReporting({ role = "admin" }) {
               <PieChart width={160} height={160}>
                 <Pie
                   data={[
-                    { v: reports.filter((r) => r.freq !== "Manual").length },
-                    { v: reports.filter((r) => r.freq === "Manual").length },
+                    { v: scopedReports.filter((r) => r.freq !== "Manual").length },
+                    { v: scopedReports.filter((r) => r.freq === "Manual").length },
                   ]}
                   dataKey="v"
                   cx={80}
@@ -642,7 +861,7 @@ export default function PageReporting({ role = "admin" }) {
                 </Pie>
               </PieChart>
               <div className="rep-donut-center">
-                <div className="rep-donut-total">{reports.length}</div>
+                <div className="rep-donut-total">{scopedReports.length}</div>
                 <div className="rep-donut-sub">Reports</div>
               </div>
             </div>
@@ -651,12 +870,12 @@ export default function PageReporting({ role = "admin" }) {
                 {
                   color: "#8b5cf6",
                   label: "Monthly",
-                  val: reports.filter((r) => r.freq !== "Manual").length,
+                  val: scopedReports.filter((r) => r.freq !== "Manual").length,
                 },
                 {
                   color: "#06b6d4",
                   label: "On-demand",
-                  val: reports.filter((r) => r.freq === "Manual").length,
+                  val: scopedReports.filter((r) => r.freq === "Manual").length,
                 },
               ].map(({ color, label, val }) => (
                 <div key={label} className="rep-legend-row">
@@ -712,6 +931,7 @@ export default function PageReporting({ role = "admin" }) {
               <tr className="dt-head-row">
                 {[
                   "Report Name",
+                  ...(role === "admin" || role === "c-admin" ? ["Account", "Account Type"] : []),
                   "Type",
                   "Frequency",
                   "Last Run",
@@ -729,6 +949,16 @@ export default function PageReporting({ role = "admin" }) {
               {visibleRep.map((r, i) => (
                 <tr key={i} className="dt-tr-plain">
                   <td className="td-p-10">{r.name}</td>
+                  {(role === "admin" || role === "c-admin") && (
+                    <>
+                      <td className="td-p-10">{r.ownerName}</td>
+                      <td className="p-10">
+                        <Badge color={r.ownerRole === "c-admin" ? VIOLET : CYAN}>
+                          {r.ownerRole === "c-admin" ? "C-Admin" : "Client"}
+                        </Badge>
+                      </td>
+                    </>
+                  )}
                   <td className="p-10">
                     <Badge color={r.type === "Scheduled" ? VIOLET : CYAN}>
                       {r.type}

@@ -4,6 +4,8 @@ import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import { ReportIssueModal } from "../../pages/Support";
+import { makeTransactionDetail } from "../../models/transactions";
+import { getFraudReasonColor, getFraudReasonTitle } from "../../pages/FraudCodes";
 
 // ── Event template — all test names used per event type ──────────────────────
 const EVENT_TEMPLATES = [
@@ -772,7 +774,7 @@ export default function TransactionDetailModal({
   const [showMenu, setShowMenu] = useState(false);
   const menuRef = useRef(null);
 
-  const d = useMemo(() => makeDetail(row), [row]);
+  const d = useMemo(() => makeTransactionDetail(row), [row]);
 
   const rawEvents = useMemo(
     () => [
@@ -1112,12 +1114,23 @@ export default function TransactionDetailModal({
           <div className="tdd-block-banner-reasons">
             {d.isBlocked ? (
               d.reasons.map((r, i) => (
-                <span key={i} className="tdd-block-reason-chip">
-                  {r}
+                <span
+                  key={i}
+                  className="tdd-block-reason-chip"
+                  style={{ "--reason-color": getFraudReasonColor(r) }}
+                  title={getFraudReasonTitle(r) ? `${r} - ${getFraudReasonTitle(r)}` : r}
+                >
+                  <span>{r}</span>
+                  {getFraudReasonTitle(r) && <strong>{getFraudReasonTitle(r)}</strong>}
                 </span>
               ))
             ) : (
-              <span className="tdd-clear-reason-chip">MCPS-0000</span>
+              <span
+                className="tdd-clear-reason-chip"
+                style={{ "--reason-color": getFraudReasonColor("MCPS-0000", "#16a34a") }}
+              >
+                MCPS-0000
+              </span>
             )}
           </div>
 

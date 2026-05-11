@@ -132,17 +132,23 @@ function BarValueLabel({ x, y, width, value }) {
 
 const PAGE_SIZE = 10;
 
-export default function PartnersTrafficChart({ days = 1, onPartnerFilter, initialName = null }) {
-  const allData = useMemo(() => buildPartnerData(days, ALL_PARTNERS), [days]);
+export default function PartnersTrafficChart({
+  days = 1,
+  onPartnerFilter,
+  initialName = null,
+  partnerPool = ALL_PARTNERS,
+  title = "Partners by Traffic",
+}) {
+  const allData = useMemo(() => buildPartnerData(days, partnerPool), [days, partnerPool]);
 
   // Resolve initialName → id once on mount so the bar is pre-selected
   const initialId = useMemo(() => {
     if (!initialName) return null;
-    const match = ALL_PARTNERS.find(
+    const match = partnerPool.find(
       (p) => p.name.toLowerCase() === initialName.toLowerCase()
     );
     return match ? match.id : null;
-  }, [initialName]);
+  }, [initialName, partnerPool]);
 
   const [selected, setSelected] = useState(initialId);
   const [page, setPage] = useState(() => {
@@ -175,11 +181,11 @@ export default function PartnersTrafficChart({ days = 1, onPartnerFilter, initia
   useEffect(() => {
     if (onPartnerFilter) {
       const partner = selected
-        ? ALL_PARTNERS.find((p) => p.id === selected)
+        ? partnerPool.find((p) => p.id === selected)
         : null;
       onPartnerFilter(partner ? partner.name : null);
     }
-  }, [selected, onPartnerFilter]);
+  }, [selected, onPartnerFilter, partnerPool]);
 
   function handleBarClick(entry) {
     if (!entry?.activePayload?.[0]) return;
@@ -188,7 +194,7 @@ export default function PartnersTrafficChart({ days = 1, onPartnerFilter, initia
   }
 
   const selectedName = selected
-    ? ALL_PARTNERS.find((p) => p.id === selected)?.name
+    ? partnerPool.find((p) => p.id === selected)?.name
     : null;
   const startRank = page * PAGE_SIZE + 1;
   const endRank = Math.min(page * PAGE_SIZE + PAGE_SIZE, allData.length);
@@ -197,7 +203,7 @@ export default function PartnersTrafficChart({ days = 1, onPartnerFilter, initia
     <Card className="svc-chart-card mb-section">
       <div className="svc-chart-header">
         <div className="svc-chart-header-left">
-          <SectionTitle>Partners by Traffic</SectionTitle>
+          <SectionTitle>{title}</SectionTitle>
           <span className="svc-chart-period-badge">
             {days === 1 ? "Today" : `Last ${days} days`}
           </span>

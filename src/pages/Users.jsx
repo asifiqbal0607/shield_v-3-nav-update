@@ -158,8 +158,156 @@ function CancelBtn({ onClick }) {
   );
 }
 
+function toggleListValue(list, value) {
+  return list.includes(value)
+    ? list.filter((item) => item !== value)
+    : [...list, value];
+}
+
+function getClientServices(clientAccounts, clientId) {
+  const client = clientAccounts.find((u) => u.id === clientId);
+  return client?.services?.length ? client.services : [];
+}
+
+function CAdminAssignmentEditor({
+  clientAccounts,
+  assignedClientIds,
+  assignedClientServices,
+  onClientIdsChange,
+  onClientServicesChange,
+}) {
+  const [serviceSearch, setServiceSearch] = useState({});
+
+  return (
+    <div className="usr-cadmin-editor">
+      <div className="usr-cadmin-editor-head">
+        <div>
+          <div className="usr-cadmin-editor-title">Client and Service Scope</div>
+          <div className="usr-cadmin-editor-sub">
+            Assign only the clients and services this C-Admin can manage.
+          </div>
+        </div>
+      </div>
+      <div className="usr-client-check-grid">
+        {clientAccounts.map((client) => (
+          <label key={client.id} className="usr-client-check">
+            <input
+              type="checkbox"
+              checked={assignedClientIds.includes(client.id)}
+              onChange={() => onClientIdsChange(toggleListValue(assignedClientIds, client.id))}
+            />
+            <span>{client.name}</span>
+          </label>
+        ))}
+      </div>
+      {assignedClientIds.map((clientId) => {
+        const client = clientAccounts.find((row) => row.id === clientId);
+        const services = getClientServices(clientAccounts, clientId);
+        const selectedServices = assignedClientServices[clientId] || [];
+        const query = serviceSearch[clientId] || "";
+        const results = query.trim()
+          ? services.filter((service) =>
+              service.toLowerCase().includes(query.trim().toLowerCase()),
+            )
+          : [];
+        const allSelected =
+          services.length > 0 &&
+          services.every((service) => selectedServices.includes(service));
+
+        return (
+          <div key={clientId} className="usr-client-service-card">
+            <div className="usr-client-service-head">
+              <div>
+                <div className="usr-client-service-name">{client?.name || clientId}</div>
+                <div className="usr-client-service-count">
+                  {selectedServices.length} of {services.length} services assigned
+                </div>
+              </div>
+              <button
+                type="button"
+                className="obf-link-btn"
+                onClick={() =>
+                  onClientServicesChange(clientId, allSelected ? [] : [...services])
+                }
+              >
+                {allSelected ? "Deselect All" : "Select All"}
+              </button>
+            </div>
+            {selectedServices.length > 0 && (
+              <div className="usr-selected-service-chips">
+                {selectedServices.map((service) => (
+                  <button
+                    key={service}
+                    type="button"
+                    className="usr-selected-service-chip"
+                    onClick={() =>
+                      onClientServicesChange(
+                        clientId,
+                        selectedServices.filter((item) => item !== service),
+                      )
+                    }
+                  >
+                    <span>{service}</span>
+                    <strong>x</strong>
+                  </button>
+                ))}
+              </div>
+            )}
+            <input
+              className="usr-service-search"
+              placeholder={`Search ${client?.name || "client"} services...`}
+              value={query}
+              onChange={(e) =>
+                setServiceSearch((prev) => ({
+                  ...prev,
+                  [clientId]: e.target.value,
+                }))
+              }
+            />
+            <div className="usr-service-search-results">
+              {!query.trim() ? (
+                <div className="usr-service-search-empty">
+                  Search to assign services for this client.
+                </div>
+              ) : results.length === 0 ? (
+                <div className="usr-service-search-empty">No matching services found.</div>
+              ) : (
+                results.map((service) => {
+                  const selected = selectedServices.includes(service);
+                  return (
+                    <button
+                      key={service}
+                      type="button"
+                      className={`usr-service-result${selected ? " selected" : ""}`}
+                      onClick={() =>
+                        onClientServicesChange(
+                          clientId,
+                          toggleListValue(selectedServices, service),
+                        )
+                      }
+                    >
+                      <span>{service}</span>
+                      <strong>{selected ? "Selected" : "Add"}</strong>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ─── View Modal ───────────────────────────────────────────────────────────────
 function ViewModal({ user, onClose }) {
+  const assignedClients = (user.assignedClientIds || [])
+    .map((id) => initialUserRows.find((row) => row.id === id)?.name || id)
+    .join(", ");
+  const assignedServiceCount = Object.values(user.assignedClientServices || {})
+    .reduce((sum, services) => sum + services.length, 0);
+
   return (
     <Modal
       title="User Details"
@@ -187,6 +335,16 @@ function ViewModal({ user, onClose }) {
         <Field label="Last Login" value={user.lastLogin} />
         <Field label="Status" value={user.status} />
         {user.plan && <Field label="Plan" value={user.plan} />}
+        {user.role === "C-Admins" && (
+          <>
+            <Field label="Assigned Clients" value={assignedClients || "None"} />
+            <Field label="Assigned Services" value={assignedServiceCount || "None"} />
+            <Field
+              label="Service Onboarding"
+              value={user.serviceOnboardingEnabled ? "Allowed for assigned clients" : "Not allowed"}
+            />
+          </>
+        )}
         <Field label="User ID" value={user.id} mono />
       </div>
       <div className="mt-8-end">
@@ -197,15 +355,40 @@ function ViewModal({ user, onClose }) {
 }
 
 // ─── Edit Modal ───────────────────────────────────────────────────────────────
-function EditModal({ user, onSave, onClose }) {
+function EditModal({ user, onSave, onClose, clientAccounts = [] }) {
   const [form, setForm] = useState({
     name: user.name,
     email: user.email,
     role: user.role,
     region: user.region,
     status: user.status,
+    assignedClientIds: user.assignedClientIds || [],
+    assignedClientServices: user.assignedClientServices || {},
+    serviceOnboardingEnabled: user.serviceOnboardingEnabled || false,
   });
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const isCAdmin = form.role === "C-Admins";
+
+  useEffect(() => {
+    if (!isCAdmin) return;
+    setForm((prev) => {
+      const assignedClientServices = {};
+      prev.assignedClientIds.forEach((clientId) => {
+        const serviceOptions = getClientServices(clientAccounts, clientId);
+        assignedClientServices[clientId] = (prev.assignedClientServices[clientId] || []).filter(
+          (service) => serviceOptions.includes(service),
+        );
+      });
+      return {
+        ...prev,
+        assignedClientServices,
+        serviceOnboardingEnabled:
+          prev.assignedClientIds.length > 0 &&
+          prev.assignedClientIds.every((clientId) => assignedClientServices[clientId]?.length),
+      };
+    });
+  }, [isCAdmin, form.assignedClientIds, clientAccounts]);
+
   return (
     <Modal
       title="Edit User"
@@ -263,12 +446,43 @@ function EditModal({ user, onSave, onClose }) {
           </select>
         </div>
       </div>
+      {isCAdmin && (
+        <CAdminAssignmentEditor
+          clientAccounts={clientAccounts}
+          assignedClientIds={form.assignedClientIds}
+          assignedClientServices={form.assignedClientServices}
+          onClientIdsChange={(assignedClientIds) =>
+            setForm((prev) => ({ ...prev, assignedClientIds }))
+          }
+          onClientServicesChange={(clientId, servicesForClient) =>
+            setForm((prev) => ({
+              ...prev,
+              assignedClientServices: {
+                ...prev.assignedClientServices,
+                [clientId]: servicesForClient,
+              },
+            }))
+          }
+        />
+      )}
       <div className="usr-action-row-end">
         <CancelBtn onClick={onClose} />
         <ActionBtn
           label="Save Changes"
           onClick={() => {
-            onSave(form);
+            const payload = { ...form };
+            if (payload.role !== "C-Admins") {
+              delete payload.assignedClientIds;
+              delete payload.assignedClientServices;
+              delete payload.serviceOnboardingEnabled;
+            } else {
+              payload.serviceOnboardingEnabled =
+                payload.assignedClientIds.length > 0 &&
+                payload.assignedClientIds.every(
+                  (clientId) => payload.assignedClientServices[clientId]?.length,
+                );
+            }
+            onSave(payload);
             onClose();
           }}
         />
@@ -736,6 +950,7 @@ function UserActions({
   capLimit,
   onSaveCapLimit,
   isAdmin,
+  clientAccounts = [],
 }) {
   const [open, setOpen] = useState(false);
   const [modal, setModal] = useState(null);
@@ -783,6 +998,7 @@ function UserActions({
           user={user}
           onSave={(updated) => onEdit(user, updated)}
           onClose={() => setModal(null)}
+          clientAccounts={clientAccounts}
         />
       )}
       {modal === "loginAs" && (
@@ -1382,6 +1598,7 @@ export default function PageUsers({ role = "admin", setPage }) {
               <col className="usr-col-email" />
               <col className="usr-col-type" />
               <col className="usr-col-region" />
+              <col className="usr-col-scope" />
               <col className="usr-col-login" />
               <col className="usr-col-status" />
               <col className="usr-col-cap" />
@@ -1394,6 +1611,7 @@ export default function PageUsers({ role = "admin", setPage }) {
                   "Email",
                   "Type",
                   "Region",
+                  "Client Scope",
                   "Last Login",
                   "Status",
                   "Cap Limit",
@@ -1430,6 +1648,15 @@ export default function PageUsers({ role = "admin", setPage }) {
                     </div>
                   </td>
                   <td className="dt-td">{u.region}</td>
+                  <td className="td-p-10s">
+                    {u.role === "C-Admins" && u.assignedClientIds?.length ? (
+                      <span className="usr-scope-pill">
+                        {u.assignedClientIds.length} clients
+                      </span>
+                    ) : (
+                      <span className="cap-not-set">—</span>
+                    )}
+                  </td>
                   <td className="td-p-10s">{u.lastLogin}</td>
                   <td>
                     <div className="usr-td-status">
@@ -1461,13 +1688,14 @@ export default function PageUsers({ role = "admin", setPage }) {
                       capLimit={capLimits[u.email]}
                       onSaveCapLimit={handleSaveCapLimit}
                       isAdmin={role === "admin"}
+                      clientAccounts={users.filter((row) => row.role === "Clients")}
                     />
                   </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
                 <tr>
-                  <td colSpan={8} className="dt-empty">
+                  <td colSpan={9} className="dt-empty">
                     No {statusTab} users found
                     {activeType !== "All" ? ` for ${activeType}` : ""}.
                   </td>
@@ -1489,4 +1717,3 @@ export default function PageUsers({ role = "admin", setPage }) {
     </div>
   );
 }
-

@@ -16,6 +16,8 @@ import { histogramData, blockReasons, blockLegend } from "../data/charts";
 import ServicesTrafficChart from "../components/charts/ServicesTrafficChart";
 import PartnersTrafficChart from "../components/charts/PartnersTrafficChart";
 import { ALL_PARTNERS } from "../models/partners";
+import { ALL_SERVICES } from "../models/services";
+import { userRows } from "../data/tables";
 import { buildPartnerData, getDayStats, getFilterScale } from "../services/trafficService";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -28,28 +30,83 @@ function fmtPct(n) { return `${n.toFixed(1)}%`; }
 function chgPct(curr, prev) { return prev > 0 ? +((curr - prev) / prev * 100).toFixed(1) : 0; }
 
 // ── Aggregate all partners for a given day offset ─────────────────────────────
-function dayTotal(dayOffset) {
-  return ALL_PARTNERS.reduce((acc, p) => {
+function dayTotal(dayOffset, partnerPool = ALL_PARTNERS) {
+  return partnerPool.reduce((acc, p) => {
     const s = getDayStats(p, dayOffset);
     return { total: acc.total + s.total, blocked: acc.blocked + s.blocked, clean: acc.clean + s.clean };
   }, { total: 0, blocked: 0, clean: 0 });
 }
 
+function normalizeName(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
+function serviceMatchesAssignment(serviceName, assignedName) {
+  const service = normalizeName(serviceName);
+  const assigned = normalizeName(assignedName);
+  return service.includes(assigned) || assigned.includes(service);
+}
+
+function getDemoCAdminAccount() {
+  return userRows.find((u) => u.role === "C-Admins" && u.serviceOnboardingEnabled) || null;
+}
+
+function getCAdminClientRows(cAdmin = getDemoCAdminAccount()) {
+  if (!cAdmin?.assignedClientIds?.length) return [];
+  return cAdmin.assignedClientIds
+    .map((id) => userRows.find((u) => u.id === id && u.role === "Clients"))
+    .filter(Boolean);
+}
+
+function getCAdminServicePool(cAdmin = getDemoCAdminAccount()) {
+  if (!cAdmin?.assignedClientServices) return [];
+  const assignedNames = Object.values(cAdmin.assignedClientServices).flat();
+  return ALL_SERVICES.filter((service) =>
+    assignedNames.some((assigned) => serviceMatchesAssignment(service.name, assigned)),
+  );
+}
+
+function getCAdminPartnerPool(cAdmin = getDemoCAdminAccount()) {
+  const clients = getCAdminClientRows(cAdmin);
+  if (!clients.length) return [];
+
+  return clients.map((client, idx) => {
+    const assignedNames = cAdmin?.assignedClientServices?.[client.id] || [];
+    const matchedServices = ALL_SERVICES.filter((service) =>
+      assignedNames.some((assigned) => serviceMatchesAssignment(service.name, assigned)),
+    );
+    const fallbackBase = Math.max(20000, (client.sessions || 100) * 40);
+    const baseTraffic = matchedServices.length
+      ? matchedServices.reduce((sum, service) => sum + service.baseTraffic, 0)
+      : fallbackBase;
+
+    return {
+      id: 9000 + idx,
+      name: client.name,
+      services: matchedServices.map((service) => service.name),
+      baseTraffic,
+    };
+  });
+}
+
 // ── KPI data derived from real partner traffic ────────────────────────────────
-function buildKpiData(range, filterScale = 1) {
+function buildKpiData(range, filterScale = 1, partnerPool = ALL_PARTNERS) {
   const periods = range === "1d" ? 1 : range === "7d" ? 7 : 30;
   const desc = range === "1d" ? "vs yesterday" : range === "7d" ? "vs prev 7d" : "vs prev 30d";
 
   // Current period
   let curr = { total: 0, blocked: 0, clean: 0 };
   for (let d = 0; d < periods; d++) {
-    const s = dayTotal(d);
+    const s = dayTotal(d, partnerPool);
     curr.total += s.total; curr.blocked += s.blocked; curr.clean += s.clean;
   }
   // Previous period
   let prev = { total: 0, blocked: 0, clean: 0 };
   for (let d = periods; d < periods * 2; d++) {
-    const s = dayTotal(d);
+    const s = dayTotal(d, partnerPool);
     prev.total += s.total; prev.blocked += s.blocked; prev.clean += s.clean;
   }
 
@@ -94,12 +151,12 @@ function buildKpiData(range, filterScale = 1) {
 }
 
 // ── Volume chart data derived from real partner traffic ───────────────────────
-function buildVolumeData(range) {
+function buildVolumeData(range, partnerPool = ALL_PARTNERS) {
   if (range === "1d") {
     const WEIGHTS = [0.5,0.4,0.3,0.3,0.4,0.6,0.9,1.3,1.8,2.0,1.9,1.7,
                      1.5,1.6,1.8,2.1,2.0,1.8,1.4,1.1,0.9,0.7,0.6,0.5];
     const wSum = WEIGHTS.reduce((s, w) => s + w, 0);
-    const today = dayTotal(0);
+    const today = dayTotal(0, partnerPool);
     const now = new Date().getHours();
     return WEIGHTS.slice(0, now + 1).map((w, h) => ({
       d: `${String(h).padStart(2,"0")}:00`,
@@ -110,20 +167,20 @@ function buildVolumeData(range) {
   }
   if (range === "7d") {
     return ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"].map((d, i) => {
-      const s = dayTotal(6 - i);
+      const s = dayTotal(6 - i, partnerPool);
       return { d, clean: s.clean, blocked: s.blocked, visits: Math.round(s.total * 1.35) };
     });
   }
   // 30d
   return Array.from({ length: 30 }, (_, i) => {
-    const s = dayTotal(29 - i);
+    const s = dayTotal(29 - i, partnerPool);
     return { d: `${i + 1}`, clean: s.clean, blocked: s.blocked, visits: Math.round(s.total * 1.35) };
   });
 }
 
 // ── Hourly density from real today total ─────────────────────────────────────
-function buildHourlyData() {
-  const today = dayTotal(0);
+function buildHourlyData(partnerPool = ALL_PARTNERS) {
+  const today = dayTotal(0, partnerPool);
   const WEIGHTS = [0.5,0.4,0.3,0.3,0.4,0.6,0.9,1.3,1.8,2.0,1.9,1.7,
                    1.5,1.6,1.8,2.1,2.0,1.8,1.4,1.1,0.9,0.7,0.6,0.5];
   const wSum = WEIGHTS.reduce((s, w) => s + w, 0);
@@ -165,8 +222,8 @@ function buildChannelData() {
 }
 
 // ── Fraud score from real block rate ─────────────────────────────────────────
-function buildFraudScore() {
-  const s = dayTotal(0);
+function buildFraudScore(partnerPool = ALL_PARTNERS) {
+  const s = dayTotal(0, partnerPool);
   const suspect = Math.round(s.clean * 0.15);
   const clean   = s.clean - suspect;
   return { clean, suspect, blocked: s.blocked };
@@ -275,7 +332,7 @@ function AreaTip({ active, payload, label }) {
 }
 
 // ── Block donut (pure SVG) — uses partner data so stays in Overview ───────────
-function BlockDonut({ data, filterScale }) {
+function BlockDonut({ data, filterScale, partnerPool = ALL_PARTNERS }) {
   const R = 48, cx = 60, cy = 60, sw = 11;
   const circ = 2 * Math.PI * R;
   const total = data.reduce((s, d) => s + d.value, 0);
@@ -290,7 +347,7 @@ function BlockDonut({ data, filterScale }) {
     return { ...d, i, dash, rot };
   });
 
-  const todayBlocked = ALL_PARTNERS.reduce((acc, p) => acc + getDayStats(p, 0).blocked, 0);
+  const todayBlocked = partnerPool.reduce((acc, p) => acc + getDayStats(p, 0).blocked, 0);
   const totalBlocks = Math.round(todayBlocked * filterScale);
 
   return (
@@ -403,6 +460,18 @@ export default function PageOverview({
   capLimit = null,
 }) {
   const isAdmin = role === "admin";
+  const isCAdmin = role === "c-admin";
+  const cAdminAccount = useMemo(() => getDemoCAdminAccount(), []);
+  const cAdminPartnerPool = useMemo(
+    () => (isCAdmin ? getCAdminPartnerPool(cAdminAccount) : []),
+    [isCAdmin, cAdminAccount],
+  );
+  const cAdminServicePool = useMemo(
+    () => (isCAdmin ? getCAdminServicePool(cAdminAccount) : []),
+    [isCAdmin, cAdminAccount],
+  );
+  const scopedPartnerPool = isCAdmin ? cAdminPartnerPool : ALL_PARTNERS;
+  const scopedServiceNames = cAdminServicePool.map((service) => service.name);
   const [modal,       setModal]       = useState(null);
   const [selectedBar, setSelectedBar] = useState(initialFilter ?? null);
   const [rangeTab,    setRangeTab]    = useState("7d");
@@ -429,11 +498,14 @@ export default function PageOverview({
   }, [globalFilters]);
 
   // Real filter scale using trafficService
-  const partnerData = useMemo(() => buildPartnerData(1, ALL_PARTNERS), []);
+  const partnerData = useMemo(
+    () => buildPartnerData(1, scopedPartnerPool),
+    [scopedPartnerPool],
+  );
 
   // For partner view: build a service-level data map so filterScale works on service selection
   const serviceData = useMemo(() => {
-    if (isAdmin) return null;
+    if (isAdmin || isCAdmin) return null;
     // Flatten all services across all partners, sum their traffic
     const map = {};
     ALL_PARTNERS.forEach(p => {
@@ -447,11 +519,11 @@ export default function PageOverview({
       });
     });
     return map;
-  }, [isAdmin]);
+  }, [isAdmin, isCAdmin]);
 
   const filterScale = useMemo(() => {
     if (!selectedBar) return 1;
-    if (isAdmin) {
+    if (isAdmin || isCAdmin) {
       // Admin: filter by partner name
       return getFilterScale(selectedBar, partnerData);
     } else {
@@ -462,19 +534,30 @@ export default function PageOverview({
       if (!match || allTotal === 0) return 1;
       return match.total / allTotal;
     }
-  }, [selectedBar, partnerData, serviceData, isAdmin]);
+  }, [selectedBar, partnerData, serviceData, isAdmin, isCAdmin]);
 
   // KPI cards and volume data from real data, reactive to range tab AND filter
-  const kpiCards = useMemo(() => buildKpiData(rangeTab, filterScale), [rangeTab, filterScale]);
+  const kpiCards = useMemo(
+    () => buildKpiData(rangeTab, filterScale, scopedPartnerPool),
+    [rangeTab, filterScale, scopedPartnerPool],
+  );
   const chartData = useMemo(() => {
-    const raw = buildVolumeData(rangeTab);
+    const raw = buildVolumeData(rangeTab, scopedPartnerPool);
     return raw.map(d => ({
       ...d,
       clean:   Math.round(d.clean   * filterScale),
       blocked: Math.round(d.blocked * filterScale),
       visits:  Math.round(d.visits  * filterScale),
     }));
-  }, [rangeTab, filterScale]);
+  }, [rangeTab, filterScale, scopedPartnerPool]);
+  const hourlyData = useMemo(
+    () => buildHourlyData(scopedPartnerPool),
+    [scopedPartnerPool],
+  );
+  const fraudScore = useMemo(
+    () => buildFraudScore(scopedPartnerPool),
+    [scopedPartnerPool],
+  );
 
   const TICK = { fontSize: 9, fill: "#94a3b8" };
 
@@ -512,9 +595,11 @@ export default function PageOverview({
       </div>
 
       {/* ── Partners / Services traffic ── */}
-      {isAdmin ? (
+      {isAdmin || isCAdmin ? (
         <PartnersTrafficChart days={1} onPartnerFilter={handleBarFilter}
-          initialName={filterType === "client" ? initialFilter : null} />
+          initialName={filterType === "client" ? initialFilter : null}
+          partnerPool={scopedPartnerPool}
+          title={isCAdmin ? "Assigned Clients by Traffic" : "Partners by Traffic"} />
       ) : (
         <ServicesTrafficChart days={1} onServiceFilter={handleBarFilter}
           initialName={filterType === "service" ? initialFilter : null} />
@@ -528,7 +613,7 @@ export default function PageOverview({
             Showing data for <strong>{selectedBar}</strong> —{" "}
             {filterType === "client" ? "client filter active"
               : filterType === "service" ? "service filter active"
-              : isAdmin ? "partner filter active" : "service filter active"}
+              : isAdmin || isCAdmin ? "client filter active" : "service filter active"}
           </span>
           <button className="ovb-banner-clear" onClick={() => setSelectedBar(null)}>Clear filter ✕</button>
         </div>
@@ -591,13 +676,13 @@ export default function PageOverview({
                 <div className="ov2-card-sub">Transactions by hour</div>
               </div>
             </div>
-            <HeatmapBar data={HOURLY_DATA} />
+            <HeatmapBar data={hourlyData} />
           </Card>
           <Card>
             <div className="ov2-card-header">
               <div className="ov2-card-title">Fraud Score</div>
             </div>
-            <ScoreGauge clean={FRAUD_SCORE.clean} suspect={FRAUD_SCORE.suspect} blocked={FRAUD_SCORE.blocked} />
+            <ScoreGauge clean={fraudScore.clean} suspect={fraudScore.suspect} blocked={fraudScore.blocked} />
           </Card>
         </div>
       </div>
@@ -629,7 +714,7 @@ export default function PageOverview({
               <div className="ov2-card-title">Block Reasons</div>
               <span className="ov2-card-sub">This week</span>
             </div>
-            <BlockDonut data={BLOCK_REASONS} filterScale={filterScale} />
+            <BlockDonut data={BLOCK_REASONS} filterScale={filterScale} partnerPool={scopedPartnerPool} />
           </Card>
         </div>
       </div>

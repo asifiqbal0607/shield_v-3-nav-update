@@ -9,8 +9,9 @@ import { EyeIcon, EyeOffIcon, AlertIcon, MailIcon } from "../components/ui/Icons
        onLogin(role)  — called with 'admin' | 'partner' on success
 
    Demo credentials (swap handleSubmit with a real API call when ready):
-       admin@shield.com   /  admin
-       partner@shield.com /  partner
+       admin@shield.com    /  admin
+       partner@shield.com  /  partner
+       cadmin@shield.com   /  cadmin
 ───────────────────────────────────────────────────────────────────────────── */
 
 const FEATURES = [
@@ -87,6 +88,8 @@ function LoginForm({ onLogin, onForgot }) {
       onLogin("admin");
     } else if (email === "partner@shield.com" && password === "partner") {
       onLogin("partner");
+    } else if (email === "cadmin@shield.com" && password === "cadmin") {
+      onLogin("c-admin");
     } else {
       setError("Invalid email or password. Please try again.");
     }

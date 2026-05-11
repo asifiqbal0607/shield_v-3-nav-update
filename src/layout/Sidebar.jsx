@@ -17,29 +17,29 @@ const TOP_GROUPS = [
     key: "dashboard",
     Icon: LayoutDashboard,
     label: "Dashboard",
-    roles: ["admin", "partner"],
+    roles: ["admin", "partner", "c-admin"],
     items: [
       { key: "overview",        label: "Overview" },
-      { key: "reporting",       label: "Reporting" },
-      { key: "traffic-sources", label: "Traffic Sources" },
+      { key: "reporting",       label: "Reporting", roles: ["admin", "partner", "c-admin"] },
+      { key: "traffic-sources", label: "Traffic Sources", roles: ["admin", "partner", "c-admin"] },
     ],
   },
   {
     key: "management",
     Icon: Users,
     label: "Management",
-    roles: ["admin"],
+    roles: ["admin", "c-admin"],
     items: [
-      { key: "users",    label: "Manage Users" },
-      { key: "services", label: "Manage Services" },
-      { key: "partners", label: "Partners" },
+      { key: "users",    label: "Manage Users", roles: ["admin"] },
+      { key: "services", label: "Manage Services", roles: ["admin", "c-admin"] },
+      { key: "partners", label: "Partners", roles: ["admin"] },
     ],
   },
   {
     key: "analytics",
     Icon: BarChart3,
     label: "Analytics",
-    roles: ["admin", "partner"],
+    roles: ["admin", "partner", "c-admin"],
     items: [
       { key: "fraud-codes", label: "Fraud Codes" },
       { key: "block",       label: "Blocking" },
@@ -52,7 +52,7 @@ const TOP_GROUPS = [
     key: "resources",
     Icon: BookOpen,
     label: "Resources",
-    roles: ["admin", "partner"],
+    roles: ["admin", "partner", "c-admin"],
     items: [
       { key: "docs",    label: "Documentation" },
       { key: "sandbox", label: "Sandbox" },
@@ -82,7 +82,7 @@ const BOTTOM_GROUP = {
   key: "support",
   Icon: HelpCircle,
   label: "Support",
-  roles: ["admin", "partner"],
+  roles: ["admin", "partner", "c-admin"],
   items: [
     { key: "support", label: "Raise a Ticket" },
     { key: "docs",    label: "Documentation" },
@@ -94,7 +94,13 @@ export default function Sidebar({ role, page, setPage }) {
   const [openKey, setOpenKey] = useState(null);
   const [pinned, setPinned] = useState(false);
 
-  const topGroups  = TOP_GROUPS.filter((g) => g.roles.includes(role));
+  const topGroups  = TOP_GROUPS
+    .filter((g) => g.roles.includes(role))
+    .map((g) => ({
+      ...g,
+      items: g.items.filter((i) => !i.roles || i.roles.includes(role)),
+    }))
+    .filter((g) => g.items.length > 0);
   const showBottom = BOTTOM_GROUP.roles.includes(role);
   const allGroups  = [...topGroups, ...(showBottom ? [BOTTOM_GROUP] : [])];
   const openGroup  = allGroups.find((g) => g.key === openKey) ?? null;

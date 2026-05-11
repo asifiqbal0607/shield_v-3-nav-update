@@ -23,6 +23,7 @@ import {
   SLATE,
 } from "../components/constants/colors";
 import { repTrend } from "../data/charts";
+import { userRows } from "../data/tables";
 import {
   EyeIcon,
   EditIcon,
@@ -46,6 +47,24 @@ const API_CALL_DATA = [
 ];
 
 const BAR_COLORS = [BLUE, GREEN, VIOLET, ROSE, AMBER, "#06b6d4", "#f97316"];
+
+function getDemoCAdminAccount() {
+  return userRows.find((u) => u.role === "C-Admins" && u.serviceOnboardingEnabled) || null;
+}
+
+function getAssignedClientAccounts(cAdmin = getDemoCAdminAccount()) {
+  if (!cAdmin?.assignedClientIds?.length) return [];
+  return cAdmin.assignedClientIds
+    .map((id) => userRows.find((u) => u.id === id && u.role === "Clients"))
+    .filter(Boolean);
+}
+
+function isServiceAllowedForCAdmin(service, cAdmin, client) {
+  if (!cAdmin?.assignedClientServices || !client?.id) return true;
+  const allowedServices = cAdmin.assignedClientServices[client.id] || [];
+  if (!allowedServices.length) return false;
+  return allowedServices.some((name) => service.name.includes(name));
+}
 
 const svcRows = [
   {
@@ -3870,6 +3889,7 @@ export default function PageServices({ role = "admin", setPage }) {
   const [exportPartner, setExportPartner] = useState(null);
   const [services, setServices] = useState(svcRows);
   const [confirmToggle, setConfirmToggle] = useState(null); // row to confirm toggle
+  const [cAdminClientId, setCAdminClientId] = useState("all");
 
   function openModal(key, row) {
     if (key === "dashboard") {
@@ -3908,14 +3928,32 @@ export default function PageServices({ role = "admin", setPage }) {
 
   const isPartner = role === "partner";
   const isAdmin = role === "admin";
+  const isCAdmin = role === "c-admin";
+  const cAdminAccount = getDemoCAdminAccount();
+  const cAdminClients = getAssignedClientAccounts(cAdminAccount);
+  const cAdminClientNames = cAdminClients.map((client) => client.name);
+  const scopedServices = isCAdmin
+    ? services.filter((service) => {
+        const client = cAdminClients.find((item) => item.name === service.client);
+        return cAdminClientNames.includes(service.client) &&
+          isServiceAllowedForCAdmin(service, cAdminAccount, client);
+      })
+    : services;
+  const selectedCAdminClient =
+    cAdminClients.find((client) => client.id === cAdminClientId) || null;
+  const filteredServices =
+    isCAdmin && selectedCAdminClient
+      ? scopedServices.filter((service) => service.client === selectedCAdminClient.name)
+      : scopedServices;
 
-  const activeServices = services.filter((r) => r.status === "active");
-  const inactiveServices = services.filter((r) => r.status !== "active");
+  const activeServices = filteredServices.filter((r) => r.status === "active");
+  const inactiveServices = filteredServices.filter((r) => r.status !== "active");
   const displayed = tab === "active" ? activeServices : inactiveServices;
   const visibleServices = displayed.slice(0, perPageSvc);
+  const defaultCAdminOnboardingClient = selectedCAdminClient || cAdminClients[0] || null;
 
   const SUMMARY_STATS = [
-    { label: "Total Services",  value: services.length,         color: "#2563eb", filter: "all"      },
+    { label: "Total Services",  value: filteredServices.length, color: "#2563eb", filter: "all"      },
     { label: "Active",          value: activeServices.length,   color: "#22c55e", filter: "active"   },
     { label: "Inactive",        value: inactiveServices.length, color: "#f50b1f", filter: "inactive" },
   ];
@@ -3959,7 +3997,7 @@ export default function PageServices({ role = "admin", setPage }) {
   ];
 
   const visibleCols = ALL_COLUMNS.filter((c) =>
-    isAdmin ? c.admin : c.partner,
+    isAdmin || isCAdmin ? c.admin : c.partner,
   );
 
   function renderCell(col, row, idx) {
@@ -4053,6 +4091,49 @@ export default function PageServices({ role = "admin", setPage }) {
       {activeModal === "updateSummary" && (
         <UpdateSummaryModal row={activeRow} onClose={closeModal} />
       )}
+      {isCAdmin && (
+        <div className="svc-cadmin-scope">
+          <div className="svc-cadmin-main">
+            <div className="svc-cadmin-kicker">C-Admin service scope</div>
+            <div className="svc-cadmin-title">{cAdminAccount?.name || "C-Admin"}</div>
+            <div className="svc-cadmin-sub">
+              Can view and onboard services only for assigned client accounts.
+            </div>
+          </div>
+          <div className="svc-cadmin-controls">
+            <select
+              className="svc-cadmin-select"
+              value={cAdminClientId}
+              onChange={(e) => {
+                setCAdminClientId(e.target.value);
+                setPerPageSvc(10);
+              }}
+            >
+              <option value="all">All assigned clients</option>
+              {cAdminClients.map((client) => (
+                <option key={client.id} value={client.id}>
+                  {client.name}
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              className="svc-add-btn"
+              disabled={cAdminClients.length === 0}
+              onClick={() =>
+                setPage &&
+                setPage("onboarding", {
+                  clientId: selectedCAdminClient?.id || cAdminClients[0]?.id,
+                  clientName: selectedCAdminClient?.name || cAdminClients[0]?.name,
+                  cAdminId: cAdminAccount?.id,
+                })
+              }
+            >
+              + Add Service for Client
+            </button>
+          </div>
+        </div>
+      )}
       {/* Summary stats */}
       <div className="g-stats3 mb-section">
         {SUMMARY_STATS.map(({ label, value, color, filter }) => (
@@ -4061,8 +4142,15 @@ export default function PageServices({ role = "admin", setPage }) {
             className="svc-stat-clickable"
             role="button"
             tabIndex={0}
-            onClick={() => { setExportPartner(null); setExportModal(filter); }}
-            onKeyDown={(e) => e.key === "Enter" && (setExportPartner(null), setExportModal(filter))}
+            onClick={() => {
+              setExportPartner(isCAdmin && selectedCAdminClient ? selectedCAdminClient.name : null);
+              setExportModal(filter);
+            }}
+            onKeyDown={(e) =>
+              e.key === "Enter" &&
+              (setExportPartner(isCAdmin && selectedCAdminClient ? selectedCAdminClient.name : null),
+              setExportModal(filter))
+            }
           >
             <Card className="stat-top-4">
               <div className="kpi-stat dyn-color">
@@ -4082,7 +4170,7 @@ export default function PageServices({ role = "admin", setPage }) {
         createPortal(
           <SvcExportModal
             filter={exportModal}
-            allRows={services}
+            allRows={filteredServices}
             activeRows={activeServices}
             inactiveRows={inactiveServices}
             role={role}
@@ -4155,12 +4243,24 @@ export default function PageServices({ role = "admin", setPage }) {
               </select>
               <span className="dt-entries-lbl">entries</span>
             </div>
-            {isPartner && (
+            {(isPartner || isCAdmin) && (
               <button
-                onClick={() => setPage && setPage("onboarding")}
+                onClick={() => {
+                  if (!setPage) return;
+                  if (isCAdmin) {
+                    setPage("onboarding", {
+                      clientId: defaultCAdminOnboardingClient?.id,
+                      clientName: defaultCAdminOnboardingClient?.name,
+                      cAdminId: cAdminAccount?.id,
+                    });
+                    return;
+                  }
+                  setPage("onboarding");
+                }}
                 className="svc-add-btn"
+                disabled={isCAdmin && !defaultCAdminOnboardingClient}
               >
-                ⊕ Add New Service
+                {isCAdmin ? "+ Onboard Service" : "⊕ Add New Service"}
               </button>
             )}
           </div>
@@ -4219,7 +4319,7 @@ export default function PageServices({ role = "admin", setPage }) {
                   wifiPaymentFlow: "svc-col-wifipay",
                   serviceCreated: "svc-col-created",
                   lastUpdate: "svc-col-updated",
-                  actions: isPartner ? "svc-col-actions-partner" : "svc-col-actions",
+                  actions: isPartner || isCAdmin ? "svc-col-actions-partner" : "svc-col-actions",
                 };
                 return (
                   <col key={col.key} className={colClassMap[col.key] || ""} />

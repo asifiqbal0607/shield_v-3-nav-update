@@ -100,6 +100,7 @@ export default function TopNav({ role, setPage, onLogout }) {
   }, [notifOpen]);
 
   const isPartner    = role === "partner";
+  const isCAdmin     = role === "c-admin";
   const { getUnreadCount } = useTickets();
   const supportUnread = isPartner ? getUnreadCount("Tiot") : 0;
   const UNREAD_COUNT  = PARTNER_ALERTS.length;
@@ -110,7 +111,7 @@ export default function TopNav({ role, setPage, onLogout }) {
       <div className="topbar-brand">
         <span className="topbar-logo">S</span>
         <span className="topbar-name">MCP SHIELD</span>
-        <span className="topbar-sub">{isPartner ? "Partner" : "Admin"}</span>
+        <span className="topbar-sub">{isPartner ? "Partner" : isCAdmin ? "C-Admin" : "Admin"}</span>
       </div>
 
       {/* Right side */}

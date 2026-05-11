@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import ModalFooter from "../../layout/ModalFooter";
 import { ChevronDownIcon, ChevronRightIcon, PlusIcon, LockIcon, CloseIcon } from "../../components/ui/Icons";
+import { userRows } from "../../data/tables";
 
 const T = "#0d9488"; // teal brand
 
@@ -189,8 +190,32 @@ const PROFILES = [
   "Geo Resolver Profile",
 ];
 
+function getDemoCAdminAccount() {
+  return userRows.find((u) => u.role === "C-Admins" && u.serviceOnboardingEnabled) || null;
+}
+
+function getAssignedClientAccounts(cAdmin = getDemoCAdminAccount()) {
+  if (!cAdmin?.assignedClientIds?.length) return [];
+  return cAdmin.assignedClientIds
+    .map((id) => userRows.find((u) => u.id === id && u.role === "Clients"))
+    .filter(Boolean);
+}
+
 // ── Main Page ─────────────────────────────────────────────────────────────────
-export default function PageOnboardingServices({ setPage }) {
+export default function PageOnboardingServices({ setPage, role = "admin", pageContext = null }) {
+  const isCAdmin = role === "c-admin";
+  const cAdminAccount = getDemoCAdminAccount();
+  const assignedClients = getAssignedClientAccounts(cAdminAccount);
+  const initialClientId =
+    isCAdmin && assignedClients.some((client) => client.id === pageContext?.clientId)
+      ? pageContext.clientId
+      : isCAdmin
+        ? assignedClients[0]?.id || ""
+        : "";
+  const [selectedClientId, setSelectedClientId] = useState(initialClientId);
+  const selectedClient =
+    assignedClients.find((client) => client.id === selectedClientId) || null;
+
   // Step 0: Load Profile
   const [profile, setProfile] = useState("");
 
@@ -301,6 +326,28 @@ export default function PageOnboardingServices({ setPage }) {
             />
           </div>
         </div>
+
+        {isCAdmin && (
+          <SectionCard
+            step="A"
+            title="Client Account Scope"
+            subtitle="Choose the assigned client account that will own this service"
+          >
+            <Select
+              label="Client Account"
+              required
+              options={[
+                { value: "", label: "Select assigned client..." },
+                ...assignedClients.map((client) => ({
+                  value: client.id,
+                  label: `${client.name} (${client.region})`,
+                })),
+              ]}
+              value={selectedClientId}
+              onChange={(e) => setSelectedClientId(e.target.value)}
+            />
+          </SectionCard>
+        )}
 
         {/* 1 — Basic Information */}
         <SectionCard
@@ -735,6 +782,7 @@ export default function PageOnboardingServices({ setPage }) {
         >
           <div className="ob-summary-grid">
             {[
+              ...(isCAdmin ? [["Client Account", selectedClient?.name || "—"]] : []),
               ["Service Name", serviceName || "—"],
               ["Short Code", shortCode || "—"],
               ["CSP/Merchant", cspMerchant || "—"],
@@ -781,7 +829,7 @@ export default function PageOnboardingServices({ setPage }) {
           cancelLabel="← Cancel"
           saveLabel="Save Service →"
           showProfile
-          saveDisabled={!summaryConfirmed}
+          saveDisabled={!summaryConfirmed || (isCAdmin && !selectedClient)}
           onCancel={() => setPage && setPage("services")}
         />
       </div>

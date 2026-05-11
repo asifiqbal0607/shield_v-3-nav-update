@@ -1,0 +1,370 @@
+{"kind":"shape","slide":1,"role":"background","bbox":[0,0,1280,720]}
+{"kind":"shape","slide":1,"role":"orb","bbox":[850,-130,520,520]}
+{"kind":"shape","slide":1,"role":"orb","bbox":[980,420,420,420]}
+{"kind":"shape","slide":1,"role":"accent","bbox":[76,92,8,450]}
+{"kind":"shape","slide":1,"role":"kicker","bbox":[106,94,420,24]}
+{"kind":"textbox","slide":1,"role":"kicker","text":"MCP SHIELD DEMO","bbox":[106,94,420,24]}
+{"kind":"shape","slide":1,"role":"title","bbox":[100,142,760,120]}
+{"kind":"textbox","slide":1,"role":"title","text":"Role-aware security dashboard","bbox":[100,142,760,120]}
+{"kind":"shape","slide":1,"role":"subtitle","bbox":[104,288,650,92]}
+{"kind":"textbox","slide":1,"role":"subtitle","text":"A guided demo for service onboarding, scoped analytics, and report ownership across Admin, Client, and C-Admin accounts.","bbox":[104,288,650,92]}
+{"kind":"shape","slide":1,"role":"callout panel","bbox":[104,456,440,92]}
+{"kind":"shape","slide":1,"role":"callout","bbox":[134,482,380,34]}
+{"kind":"textbox","slide":1,"role":"callout","text":"Show scope, not just screens","bbox":[134,482,380,34]}
+{"kind":"shape","slide":1,"role":"footer","bbox":[104,668,520,24]}
+{"kind":"textbox","slide":1,"role":"footer","text":"Demo deck | Admin, Client, C-Admin","bbox":[104,668,520,24]}
+{"kind":"shape","slide":2,"role":"kicker","bbox":[64,34,430,24]}
+{"kind":"textbox","slide":2,"role":"kicker","text":"PRODUCT OVERVIEW","bbox":[64,34,430,24]}
+{"kind":"shape","slide":2,"role":"status mark","bbox":[1152,30,26,26]}
+{"kind":"shape","slide":2,"role":"status mark","bbox":[1188,30,26,26]}
+{"kind":"shape","slide":2,"role":"title","bbox":[64,86,760,92]}
+{"kind":"textbox","slide":2,"role":"title","text":"What the project demonstrates","bbox":[64,86,760,92]}
+{"kind":"shape","slide":2,"role":"subtitle","bbox":[66,184,760,68]}
+{"kind":"textbox","slide":2,"role":"subtitle","text":"MCP Shield combines analytics, service operations, user control, and reporting into one role-aware portal.","bbox":[66,184,760,68]}
+{"kind":"shape","slide":2,"role":"role pill Admin","bbox":[860,104,94,36]}
+{"kind":"shape","slide":2,"role":"role pill","bbox":[870,112,74,18]}
+{"kind":"textbox","slide":2,"role":"role pill","text":"Admin","bbox":[870,112,74,18]}
+{"kind":"shape","slide":2,"role":"role pill Client","bbox":[980,104,94,36]}
+{"kind":"shape","slide":2,"role":"role pill","bbox":[990,112,74,18]}
+{"kind":"textbox","slide":2,"role":"role pill","text":"Client","bbox":[990,112,74,18]}
+{"kind":"shape","slide":2,"role":"role pill C-Admin","bbox":[1100,104,94,36]}
+{"kind":"shape","slide":2,"role":"role pill","bbox":[1110,112,74,18]}
+{"kind":"textbox","slide":2,"role":"role pill","text":"C-Admin","bbox":[1110,112,74,18]}
+{"kind":"shape","slide":2,"role":"card Analytics","bbox":[74,366,350,210]}
+{"kind":"shape","slide":2,"role":"card accent Analytics","bbox":[74,366,8,210]}
+{"kind":"shape","slide":2,"role":"card icon Analytics","bbox":[98,390,48,48]}
+{"kind":"shape","slide":2,"role":"card icon Analytics","bbox":[114,413,20,4]}
+{"kind":"shape","slide":2,"role":"card icon Analytics","bbox":[122,405,4,20]}
+{"kind":"shape","slide":2,"role":"card label","bbox":[166,390,234,28]}
+{"kind":"textbox","slide":2,"role":"card label","text":"Analytics","bbox":[166,390,234,28]}
+{"kind":"shape","slide":2,"role":"card body","bbox":[102,458,294,98]}
+{"kind":"textbox","slide":2,"role":"card body","text":"Dashboards summarize traffic, blocks, device networks, geography, APK health, and service-level signals.","bbox":[102,458,294,98]}
+{"kind":"shape","slide":2,"role":"card Service Ops","bbox":[456,366,350,210]}
+{"kind":"shape","slide":2,"role":"card accent Service Ops","bbox":[456,366,8,210]}
+{"kind":"shape","slide":2,"role":"card icon Service Ops","bbox":[480,390,48,48]}
+{"kind":"shape","slide":2,"role":"card icon Service Ops","bbox":[496,413,20,4]}
+{"kind":"shape","slide":2,"role":"card icon Service Ops","bbox":[504,405,4,20]}
+{"kind":"shape","slide":2,"role":"card label","bbox":[548,390,234,28]}
+{"kind":"textbox","slide":2,"role":"card label","text":"Service Ops","bbox":[548,390,234,28]}
+{"kind":"shape","slide":2,"role":"card body","bbox":[484,458,294,98]}
+{"kind":"textbox","slide":2,"role":"card body","text":"Clients onboard services. Admins manage all services. C-Admins onboard only for assigned client accounts.","bbox":[484,458,294,98]}
+{"kind":"shape","slide":2,"role":"card Access Control","bbox":[838,366,350,210]}
+{"kind":"shape","slide":2,"role":"card accent Access Control","bbox":[838,366,8,210]}
+{"kind":"shape","slide":2,"role":"card icon Access Control","bbox":[862,390,48,48]}
+{"kind":"shape","slide":2,"role":"card icon Access Control","bbox":[878,413,20,4]}
+{"kind":"shape","slide":2,"role":"card icon Access Control","bbox":[886,405,4,20]}
+{"kind":"shape","slide":2,"role":"card label","bbox":[930,390,234,28]}
+{"kind":"textbox","slide":2,"role":"card label","text":"Access Control","bbox":[930,390,234,28]}
+{"kind":"shape","slide":2,"role":"card body","bbox":[866,458,294,98]}
+{"kind":"textbox","slide":2,"role":"card body","text":"Every major workflow changes by role: Admin, Client/Partner, or delegated C-Admin.","bbox":[866,458,294,98]}
+{"kind":"shape","slide":2,"role":"footer rule","bbox":[64,654,1152,1.5]}
+{"kind":"shape","slide":2,"role":"footer","bbox":[64,668,260,24]}
+{"kind":"textbox","slide":2,"role":"footer","text":"MCP Shield demo","bbox":[64,668,260,24]}
+{"kind":"shape","slide":2,"role":"footer","bbox":[1112,668,104,24]}
+{"kind":"textbox","slide":2,"role":"footer","text":"02 / 09","bbox":[1112,668,104,24]}
+{"kind":"shape","slide":3,"role":"kicker","bbox":[64,34,430,24]}
+{"kind":"textbox","slide":3,"role":"kicker","text":"ROLE MODEL","bbox":[64,34,430,24]}
+{"kind":"shape","slide":3,"role":"status mark","bbox":[1152,30,26,26]}
+{"kind":"shape","slide":3,"role":"status mark","bbox":[1188,30,26,26]}
+{"kind":"shape","slide":3,"role":"title","bbox":[64,86,760,92]}
+{"kind":"textbox","slide":3,"role":"title","text":"Three account experiences","bbox":[64,86,760,92]}
+{"kind":"shape","slide":3,"role":"subtitle","bbox":[66,184,760,68]}
+{"kind":"textbox","slide":3,"role":"subtitle","text":"The core demo story is the permission boundary: global Admin, self-service Client, and delegated C-Admin.","bbox":[66,184,760,68]}
+{"kind":"shape","slide":3,"role":"metric Admin","bbox":[74,350,350,226]}
+{"kind":"shape","slide":3,"role":"metric accent Admin","bbox":[74,350,350,8]}
+{"kind":"shape","slide":3,"role":"metric heading","bbox":[98,376,302,46]}
+{"kind":"textbox","slide":3,"role":"metric heading","text":"Admin","bbox":[98,376,302,46]}
+{"kind":"shape","slide":3,"role":"metric label","bbox":[98,434,302,32]}
+{"kind":"textbox","slide":3,"role":"metric label","text":"Global visibility","bbox":[98,434,302,32]}
+{"kind":"shape","slide":3,"role":"metric note","bbox":[98,476,302,80]}
+{"kind":"textbox","slide":3,"role":"metric note","text":"Can view users, services, clients, C-Admins, and all reports.","bbox":[98,476,302,80]}
+{"kind":"shape","slide":3,"role":"metric Client","bbox":[456,350,350,226]}
+{"kind":"shape","slide":3,"role":"metric accent Client","bbox":[456,350,350,8]}
+{"kind":"shape","slide":3,"role":"metric heading","bbox":[480,376,302,46]}
+{"kind":"textbox","slide":3,"role":"metric heading","text":"Client","bbox":[480,376,302,46]}
+{"kind":"shape","slide":3,"role":"metric label","bbox":[480,434,302,32]}
+{"kind":"textbox","slide":3,"role":"metric label","text":"Own account only","bbox":[480,434,302,32]}
+{"kind":"shape","slide":3,"role":"metric note","bbox":[480,476,302,80]}
+{"kind":"textbox","slide":3,"role":"metric note","text":"Can onboard services and generate reports only under itself.","bbox":[480,476,302,80]}
+{"kind":"shape","slide":3,"role":"metric C-Admin","bbox":[838,350,350,226]}
+{"kind":"shape","slide":3,"role":"metric accent C-Admin","bbox":[838,350,350,8]}
+{"kind":"shape","slide":3,"role":"metric heading","bbox":[862,376,302,46]}
+{"kind":"textbox","slide":3,"role":"metric heading","text":"C-Admin","bbox":[862,376,302,46]}
+{"kind":"shape","slide":3,"role":"metric label","bbox":[862,434,302,32]}
+{"kind":"textbox","slide":3,"role":"metric label","text":"Delegated scope","bbox":[862,434,302,32]}
+{"kind":"shape","slide":3,"role":"metric note","bbox":[862,476,302,80]}
+{"kind":"textbox","slide":3,"role":"metric note","text":"Can operate for assigned clients plus its own C-Admin account.","bbox":[862,476,302,80]}
+{"kind":"shape","slide":3,"role":"footer rule","bbox":[64,654,1152,1.5]}
+{"kind":"shape","slide":3,"role":"footer","bbox":[64,668,260,24]}
+{"kind":"textbox","slide":3,"role":"footer","text":"MCP Shield demo","bbox":[64,668,260,24]}
+{"kind":"shape","slide":3,"role":"footer","bbox":[1112,668,104,24]}
+{"kind":"textbox","slide":3,"role":"footer","text":"03 / 09","bbox":[1112,668,104,24]}
+{"kind":"shape","slide":4,"role":"kicker","bbox":[64,34,430,24]}
+{"kind":"textbox","slide":4,"role":"kicker","text":"C-ADMIN SCOPE","bbox":[64,34,430,24]}
+{"kind":"shape","slide":4,"role":"status mark","bbox":[1152,30,26,26]}
+{"kind":"shape","slide":4,"role":"status mark","bbox":[1188,30,26,26]}
+{"kind":"shape","slide":4,"role":"title","bbox":[64,86,760,92]}
+{"kind":"textbox","slide":4,"role":"title","text":"C-Admin is delegated, not global","bbox":[64,86,760,92]}
+{"kind":"shape","slide":4,"role":"subtitle","bbox":[66,184,760,68]}
+{"kind":"textbox","slide":4,"role":"subtitle","text":"Liam Patel can operate only inside assigned client accounts and assigned service access.","bbox":[66,184,760,68]}
+{"kind":"shape","slide":4,"role":"role pill Admin","bbox":[860,104,94,36]}
+{"kind":"shape","slide":4,"role":"role pill","bbox":[870,112,74,18]}
+{"kind":"textbox","slide":4,"role":"role pill","text":"Admin","bbox":[870,112,74,18]}
+{"kind":"shape","slide":4,"role":"role pill Client","bbox":[980,104,94,36]}
+{"kind":"shape","slide":4,"role":"role pill","bbox":[990,112,74,18]}
+{"kind":"textbox","slide":4,"role":"role pill","text":"Client","bbox":[990,112,74,18]}
+{"kind":"shape","slide":4,"role":"role pill C-Admin","bbox":[1100,104,94,36]}
+{"kind":"shape","slide":4,"role":"role pill","bbox":[1110,112,74,18]}
+{"kind":"textbox","slide":4,"role":"role pill","text":"C-Admin","bbox":[1110,112,74,18]}
+{"kind":"shape","slide":4,"role":"card Assigned clients","bbox":[74,366,350,210]}
+{"kind":"shape","slide":4,"role":"card accent Assigned clients","bbox":[74,366,8,210]}
+{"kind":"shape","slide":4,"role":"card icon Assigned clients","bbox":[98,390,48,48]}
+{"kind":"shape","slide":4,"role":"card icon Assigned clients","bbox":[114,413,20,4]}
+{"kind":"shape","slide":4,"role":"card icon Assigned clients","bbox":[122,405,4,20]}
+{"kind":"shape","slide":4,"role":"card label","bbox":[166,390,234,28]}
+{"kind":"textbox","slide":4,"role":"card label","text":"Assigned clients","bbox":[166,390,234,28]}
+{"kind":"shape","slide":4,"role":"card body","bbox":[102,458,294,98]}
+{"kind":"textbox","slide":4,"role":"card body","text":"True Digital, GVI, and Teleinfotech are assigned to the demo C-Admin account.","bbox":[102,458,294,98]}
+{"kind":"shape","slide":4,"role":"card Assigned services","bbox":[456,366,350,210]}
+{"kind":"shape","slide":4,"role":"card accent Assigned services","bbox":[456,366,8,210]}
+{"kind":"shape","slide":4,"role":"card icon Assigned services","bbox":[480,390,48,48]}
+{"kind":"shape","slide":4,"role":"card icon Assigned services","bbox":[496,413,20,4]}
+{"kind":"shape","slide":4,"role":"card icon Assigned services","bbox":[504,405,4,20]}
+{"kind":"shape","slide":4,"role":"card label","bbox":[548,390,234,28]}
+{"kind":"textbox","slide":4,"role":"card label","text":"Assigned services","bbox":[548,390,234,28]}
+{"kind":"shape","slide":4,"role":"card body","bbox":[484,458,294,98]}
+{"kind":"textbox","slide":4,"role":"card body","text":"Each assigned client has its own allowed service list. Access is not shared across all clients.","bbox":[484,458,294,98]}
+{"kind":"shape","slide":4,"role":"card Blocked boundary","bbox":[838,366,350,210]}
+{"kind":"shape","slide":4,"role":"card accent Blocked boundary","bbox":[838,366,8,210]}
+{"kind":"shape","slide":4,"role":"card icon Blocked boundary","bbox":[862,390,48,48]}
+{"kind":"shape","slide":4,"role":"card icon Blocked boundary","bbox":[878,413,20,4]}
+{"kind":"shape","slide":4,"role":"card icon Blocked boundary","bbox":[886,405,4,20]}
+{"kind":"shape","slide":4,"role":"card label","bbox":[930,390,234,28]}
+{"kind":"textbox","slide":4,"role":"card label","text":"Blocked boundary","bbox":[930,390,234,28]}
+{"kind":"shape","slide":4,"role":"card body","bbox":[866,458,294,98]}
+{"kind":"textbox","slide":4,"role":"card body","text":"Unassigned clients, global user management, and admin-only areas stay outside the C-Admin scope.","bbox":[866,458,294,98]}
+{"kind":"shape","slide":4,"role":"footer rule","bbox":[64,654,1152,1.5]}
+{"kind":"shape","slide":4,"role":"footer","bbox":[64,668,260,24]}
+{"kind":"textbox","slide":4,"role":"footer","text":"MCP Shield demo","bbox":[64,668,260,24]}
+{"kind":"shape","slide":4,"role":"footer","bbox":[1112,668,104,24]}
+{"kind":"textbox","slide":4,"role":"footer","text":"04 / 09","bbox":[1112,668,104,24]}
+{"kind":"shape","slide":5,"role":"kicker","bbox":[64,34,430,24]}
+{"kind":"textbox","slide":5,"role":"kicker","text":"SERVICE ONBOARDING","bbox":[64,34,430,24]}
+{"kind":"shape","slide":5,"role":"status mark","bbox":[1152,30,26,26]}
+{"kind":"shape","slide":5,"role":"status mark","bbox":[1188,30,26,26]}
+{"kind":"shape","slide":5,"role":"title","bbox":[64,86,760,92]}
+{"kind":"textbox","slide":5,"role":"title","text":"Same form, scoped owner","bbox":[64,86,760,92]}
+{"kind":"shape","slide":5,"role":"subtitle","bbox":[66,184,760,68]}
+{"kind":"textbox","slide":5,"role":"subtitle","text":"C-Admin uses the normal client service onboarding flow, with one extra professional step: choose the assigned client owner.","bbox":[66,184,760,68]}
+{"kind":"shape","slide":5,"role":"flow card Admin setup","bbox":[78,344,248,180]}
+{"kind":"shape","slide":5,"role":"flow number","bbox":[102,372,42,42]}
+{"kind":"shape","slide":5,"role":"flow number","bbox":[114,381,18,22]}
+{"kind":"textbox","slide":5,"role":"flow number","text":"1","bbox":[114,381,18,22]}
+{"kind":"shape","slide":5,"role":"flow label","bbox":[102,434,200,28]}
+{"kind":"textbox","slide":5,"role":"flow label","text":"Admin setup","bbox":[102,434,200,28]}
+{"kind":"shape","slide":5,"role":"flow body","bbox":[102,472,198,42]}
+{"kind":"textbox","slide":5,"role":"flow body","text":"Assign clients and service access to C-Admin","bbox":[102,472,198,42]}
+{"kind":"shape","slide":5,"role":"flow arrow","bbox":[330,416,34,28]}
+{"kind":"shape","slide":5,"role":"flow card C-Admin selects client","bbox":[370,344,248,180]}
+{"kind":"shape","slide":5,"role":"flow number","bbox":[394,372,42,42]}
+{"kind":"shape","slide":5,"role":"flow number","bbox":[406,381,18,22]}
+{"kind":"textbox","slide":5,"role":"flow number","text":"2","bbox":[406,381,18,22]}
+{"kind":"shape","slide":5,"role":"flow label","bbox":[394,434,200,28]}
+{"kind":"textbox","slide":5,"role":"flow label","text":"C-Admin selects client","bbox":[394,434,200,28]}
+{"kind":"shape","slide":5,"role":"flow body","bbox":[394,472,198,42]}
+{"kind":"textbox","slide":5,"role":"flow body","text":"Only assigned clients appear","bbox":[394,472,198,42]}
+{"kind":"shape","slide":5,"role":"flow arrow","bbox":[622,416,34,28]}
+{"kind":"shape","slide":5,"role":"flow card Onboarding form","bbox":[662,344,248,180]}
+{"kind":"shape","slide":5,"role":"flow number","bbox":[686,372,42,42]}
+{"kind":"shape","slide":5,"role":"flow number","bbox":[698,381,18,22]}
+{"kind":"textbox","slide":5,"role":"flow number","text":"3","bbox":[698,381,18,22]}
+{"kind":"shape","slide":5,"role":"flow label","bbox":[686,434,200,28]}
+{"kind":"textbox","slide":5,"role":"flow label","text":"Onboarding form","bbox":[686,434,200,28]}
+{"kind":"shape","slide":5,"role":"flow body","bbox":[686,472,198,42]}
+{"kind":"textbox","slide":5,"role":"flow body","text":"Same form as client onboarding","bbox":[686,472,198,42]}
+{"kind":"shape","slide":5,"role":"flow arrow","bbox":[914,416,34,28]}
+{"kind":"shape","slide":5,"role":"flow card Service owner","bbox":[954,344,248,180]}
+{"kind":"shape","slide":5,"role":"flow number","bbox":[978,372,42,42]}
+{"kind":"shape","slide":5,"role":"flow number","bbox":[990,381,18,22]}
+{"kind":"textbox","slide":5,"role":"flow number","text":"4","bbox":[990,381,18,22]}
+{"kind":"shape","slide":5,"role":"flow label","bbox":[978,434,200,28]}
+{"kind":"textbox","slide":5,"role":"flow label","text":"Service owner","bbox":[978,434,200,28]}
+{"kind":"shape","slide":5,"role":"flow body","bbox":[978,472,198,42]}
+{"kind":"textbox","slide":5,"role":"flow body","text":"New service belongs to selected client","bbox":[978,472,198,42]}
+{"kind":"shape","slide":5,"role":"footer rule","bbox":[64,654,1152,1.5]}
+{"kind":"shape","slide":5,"role":"footer","bbox":[64,668,260,24]}
+{"kind":"textbox","slide":5,"role":"footer","text":"MCP Shield demo","bbox":[64,668,260,24]}
+{"kind":"shape","slide":5,"role":"footer","bbox":[1112,668,104,24]}
+{"kind":"textbox","slide":5,"role":"footer","text":"05 / 09","bbox":[1112,668,104,24]}
+{"kind":"shape","slide":6,"role":"kicker","bbox":[64,34,430,24]}
+{"kind":"textbox","slide":6,"role":"kicker","text":"REPORTING","bbox":[64,34,430,24]}
+{"kind":"shape","slide":6,"role":"status mark","bbox":[1152,30,26,26]}
+{"kind":"shape","slide":6,"role":"status mark","bbox":[1188,30,26,26]}
+{"kind":"shape","slide":6,"role":"title","bbox":[64,86,760,92]}
+{"kind":"textbox","slide":6,"role":"title","text":"Reports follow account ownership","bbox":[64,86,760,92]}
+{"kind":"shape","slide":6,"role":"subtitle","bbox":[66,184,760,68]}
+{"kind":"textbox","slide":6,"role":"subtitle","text":"Reports are owned by an account. Each role sees and generates reports only within its allowed owner set.","bbox":[66,184,760,68]}
+{"kind":"shape","slide":6,"role":"metric Admin","bbox":[74,350,350,226]}
+{"kind":"shape","slide":6,"role":"metric accent Admin","bbox":[74,350,350,8]}
+{"kind":"shape","slide":6,"role":"metric heading","bbox":[98,376,302,46]}
+{"kind":"textbox","slide":6,"role":"metric heading","text":"Admin","bbox":[98,376,302,46]}
+{"kind":"shape","slide":6,"role":"metric label","bbox":[98,434,302,32]}
+{"kind":"textbox","slide":6,"role":"metric label","text":"All owners","bbox":[98,434,302,32]}
+{"kind":"shape","slide":6,"role":"metric note","bbox":[98,476,302,80]}
+{"kind":"textbox","slide":6,"role":"metric note","text":"Can view and generate reports for Clients and C-Admins.","bbox":[98,476,302,80]}
+{"kind":"shape","slide":6,"role":"metric Client","bbox":[456,350,350,226]}
+{"kind":"shape","slide":6,"role":"metric accent Client","bbox":[456,350,350,8]}
+{"kind":"shape","slide":6,"role":"metric heading","bbox":[480,376,302,46]}
+{"kind":"textbox","slide":6,"role":"metric heading","text":"Client","bbox":[480,376,302,46]}
+{"kind":"shape","slide":6,"role":"metric label","bbox":[480,434,302,32]}
+{"kind":"textbox","slide":6,"role":"metric label","text":"Self only","bbox":[480,434,302,32]}
+{"kind":"shape","slide":6,"role":"metric note","bbox":[480,476,302,80]}
+{"kind":"textbox","slide":6,"role":"metric note","text":"Can view and generate reports only under its own account.","bbox":[480,476,302,80]}
+{"kind":"shape","slide":6,"role":"metric C-Admin","bbox":[838,350,350,226]}
+{"kind":"shape","slide":6,"role":"metric accent C-Admin","bbox":[838,350,350,8]}
+{"kind":"shape","slide":6,"role":"metric heading","bbox":[862,376,302,46]}
+{"kind":"textbox","slide":6,"role":"metric heading","text":"C-Admin","bbox":[862,376,302,46]}
+{"kind":"shape","slide":6,"role":"metric label","bbox":[862,434,302,32]}
+{"kind":"textbox","slide":6,"role":"metric label","text":"Own + assigned","bbox":[862,434,302,32]}
+{"kind":"shape","slide":6,"role":"metric note","bbox":[862,476,302,80]}
+{"kind":"textbox","slide":6,"role":"metric note","text":"Can generate reports for Liam Patel and assigned clients only.","bbox":[862,476,302,80]}
+{"kind":"shape","slide":6,"role":"footer rule","bbox":[64,654,1152,1.5]}
+{"kind":"shape","slide":6,"role":"footer","bbox":[64,668,260,24]}
+{"kind":"textbox","slide":6,"role":"footer","text":"MCP Shield demo","bbox":[64,668,260,24]}
+{"kind":"shape","slide":6,"role":"footer","bbox":[1112,668,104,24]}
+{"kind":"textbox","slide":6,"role":"footer","text":"06 / 09","bbox":[1112,668,104,24]}
+{"kind":"shape","slide":7,"role":"kicker","bbox":[64,34,430,24]}
+{"kind":"textbox","slide":7,"role":"kicker","text":"LIVE DEMO FLOW","bbox":[64,34,430,24]}
+{"kind":"shape","slide":7,"role":"status mark","bbox":[1152,30,26,26]}
+{"kind":"shape","slide":7,"role":"status mark","bbox":[1188,30,26,26]}
+{"kind":"shape","slide":7,"role":"title","bbox":[64,86,760,92]}
+{"kind":"textbox","slide":7,"role":"title","text":"Recommended demo path","bbox":[64,86,760,92]}
+{"kind":"shape","slide":7,"role":"subtitle","bbox":[66,184,760,68]}
+{"kind":"textbox","slide":7,"role":"subtitle","text":"Move from global control to delegated control to client self-service so the differences are obvious.","bbox":[66,184,760,68]}
+{"kind":"shape","slide":7,"role":"role pill Admin","bbox":[860,104,94,36]}
+{"kind":"shape","slide":7,"role":"role pill","bbox":[870,112,74,18]}
+{"kind":"textbox","slide":7,"role":"role pill","text":"Admin","bbox":[870,112,74,18]}
+{"kind":"shape","slide":7,"role":"role pill Client","bbox":[980,104,94,36]}
+{"kind":"shape","slide":7,"role":"role pill","bbox":[990,112,74,18]}
+{"kind":"textbox","slide":7,"role":"role pill","text":"Client","bbox":[990,112,74,18]}
+{"kind":"shape","slide":7,"role":"role pill C-Admin","bbox":[1100,104,94,36]}
+{"kind":"shape","slide":7,"role":"role pill","bbox":[1110,112,74,18]}
+{"kind":"textbox","slide":7,"role":"role pill","text":"C-Admin","bbox":[1110,112,74,18]}
+{"kind":"shape","slide":7,"role":"card 1. Admin","bbox":[74,366,350,210]}
+{"kind":"shape","slide":7,"role":"card accent 1. Admin","bbox":[74,366,8,210]}
+{"kind":"shape","slide":7,"role":"card icon 1. Admin","bbox":[98,390,48,48]}
+{"kind":"shape","slide":7,"role":"card icon 1. Admin","bbox":[114,413,20,4]}
+{"kind":"shape","slide":7,"role":"card icon 1. Admin","bbox":[122,405,4,20]}
+{"kind":"shape","slide":7,"role":"card label","bbox":[166,390,234,28]}
+{"kind":"textbox","slide":7,"role":"card label","text":"1. Admin","bbox":[166,390,234,28]}
+{"kind":"shape","slide":7,"role":"card body","bbox":[102,458,294,98]}
+{"kind":"textbox","slide":7,"role":"card body","text":"Login as Admin. Show Users, edit Liam Patel, assigned clients/services, and all-account reporting.","bbox":[102,458,294,98]}
+{"kind":"shape","slide":7,"role":"card 2. C-Admin","bbox":[456,366,350,210]}
+{"kind":"shape","slide":7,"role":"card accent 2. C-Admin","bbox":[456,366,8,210]}
+{"kind":"shape","slide":7,"role":"card icon 2. C-Admin","bbox":[480,390,48,48]}
+{"kind":"shape","slide":7,"role":"card icon 2. C-Admin","bbox":[496,413,20,4]}
+{"kind":"shape","slide":7,"role":"card icon 2. C-Admin","bbox":[504,405,4,20]}
+{"kind":"shape","slide":7,"role":"card label","bbox":[548,390,234,28]}
+{"kind":"textbox","slide":7,"role":"card label","text":"2. C-Admin","bbox":[548,390,234,28]}
+{"kind":"shape","slide":7,"role":"card body","bbox":[484,458,294,98]}
+{"kind":"textbox","slide":7,"role":"card body","text":"Login as C-Admin. Show scoped dashboard, assigned services, service onboarding, and scoped reporting.","bbox":[484,458,294,98]}
+{"kind":"shape","slide":7,"role":"card 3. Client","bbox":[838,366,350,210]}
+{"kind":"shape","slide":7,"role":"card accent 3. Client","bbox":[838,366,8,210]}
+{"kind":"shape","slide":7,"role":"card icon 3. Client","bbox":[862,390,48,48]}
+{"kind":"shape","slide":7,"role":"card icon 3. Client","bbox":[878,413,20,4]}
+{"kind":"shape","slide":7,"role":"card icon 3. Client","bbox":[886,405,4,20]}
+{"kind":"shape","slide":7,"role":"card label","bbox":[930,390,234,28]}
+{"kind":"textbox","slide":7,"role":"card label","text":"3. Client","bbox":[930,390,234,28]}
+{"kind":"shape","slide":7,"role":"card body","bbox":[866,458,294,98]}
+{"kind":"textbox","slide":7,"role":"card body","text":"Login as Client. Show own-service onboarding and own-account reports only.","bbox":[866,458,294,98]}
+{"kind":"shape","slide":7,"role":"footer rule","bbox":[64,654,1152,1.5]}
+{"kind":"shape","slide":7,"role":"footer","bbox":[64,668,260,24]}
+{"kind":"textbox","slide":7,"role":"footer","text":"MCP Shield demo","bbox":[64,668,260,24]}
+{"kind":"shape","slide":7,"role":"footer","bbox":[1112,668,104,24]}
+{"kind":"textbox","slide":7,"role":"footer","text":"07 / 09","bbox":[1112,668,104,24]}
+{"kind":"shape","slide":8,"role":"kicker","bbox":[64,34,430,24]}
+{"kind":"textbox","slide":8,"role":"kicker","text":"QA CHECKLIST","bbox":[64,34,430,24]}
+{"kind":"shape","slide":8,"role":"status mark","bbox":[1152,30,26,26]}
+{"kind":"shape","slide":8,"role":"status mark","bbox":[1188,30,26,26]}
+{"kind":"shape","slide":8,"role":"title","bbox":[64,86,760,92]}
+{"kind":"textbox","slide":8,"role":"title","text":"What to validate during the demo","bbox":[64,86,760,92]}
+{"kind":"shape","slide":8,"role":"subtitle","bbox":[66,184,760,68]}
+{"kind":"textbox","slide":8,"role":"subtitle","text":"The strongest proof is not that a page opens; it is that unassigned data never appears.","bbox":[66,184,760,68]}
+{"kind":"shape","slide":8,"role":"role pill Admin","bbox":[860,104,94,36]}
+{"kind":"shape","slide":8,"role":"role pill","bbox":[870,112,74,18]}
+{"kind":"textbox","slide":8,"role":"role pill","text":"Admin","bbox":[870,112,74,18]}
+{"kind":"shape","slide":8,"role":"role pill Client","bbox":[980,104,94,36]}
+{"kind":"shape","slide":8,"role":"role pill","bbox":[990,112,74,18]}
+{"kind":"textbox","slide":8,"role":"role pill","text":"Client","bbox":[990,112,74,18]}
+{"kind":"shape","slide":8,"role":"role pill C-Admin","bbox":[1100,104,94,36]}
+{"kind":"shape","slide":8,"role":"role pill","bbox":[1110,112,74,18]}
+{"kind":"textbox","slide":8,"role":"role pill","text":"C-Admin","bbox":[1110,112,74,18]}
+{"kind":"shape","slide":8,"role":"card Admin","bbox":[74,366,350,210]}
+{"kind":"shape","slide":8,"role":"card accent Admin","bbox":[74,366,8,210]}
+{"kind":"shape","slide":8,"role":"card icon Admin","bbox":[98,390,48,48]}
+{"kind":"shape","slide":8,"role":"card icon Admin","bbox":[114,413,20,4]}
+{"kind":"shape","slide":8,"role":"card icon Admin","bbox":[122,405,4,20]}
+{"kind":"shape","slide":8,"role":"card label","bbox":[166,390,234,28]}
+{"kind":"textbox","slide":8,"role":"card label","text":"Admin","bbox":[166,390,234,28]}
+{"kind":"shape","slide":8,"role":"card body","bbox":[102,458,294,98]}
+{"kind":"textbox","slide":8,"role":"card body","text":"Can assign C-Admin client/service access and generate reports for Clients or C-Admins.","bbox":[102,458,294,98]}
+{"kind":"shape","slide":8,"role":"card C-Admin","bbox":[456,366,350,210]}
+{"kind":"shape","slide":8,"role":"card accent C-Admin","bbox":[456,366,8,210]}
+{"kind":"shape","slide":8,"role":"card icon C-Admin","bbox":[480,390,48,48]}
+{"kind":"shape","slide":8,"role":"card icon C-Admin","bbox":[496,413,20,4]}
+{"kind":"shape","slide":8,"role":"card icon C-Admin","bbox":[504,405,4,20]}
+{"kind":"shape","slide":8,"role":"card label","bbox":[548,390,234,28]}
+{"kind":"textbox","slide":8,"role":"card label","text":"C-Admin","bbox":[548,390,234,28]}
+{"kind":"shape","slide":8,"role":"card body","bbox":[484,458,294,98]}
+{"kind":"textbox","slide":8,"role":"card body","text":"Can onboard services and generate reports only for its own account and assigned clients.","bbox":[484,458,294,98]}
+{"kind":"shape","slide":8,"role":"card Client","bbox":[838,366,350,210]}
+{"kind":"shape","slide":8,"role":"card accent Client","bbox":[838,366,8,210]}
+{"kind":"shape","slide":8,"role":"card icon Client","bbox":[862,390,48,48]}
+{"kind":"shape","slide":8,"role":"card icon Client","bbox":[878,413,20,4]}
+{"kind":"shape","slide":8,"role":"card icon Client","bbox":[886,405,4,20]}
+{"kind":"shape","slide":8,"role":"card label","bbox":[930,390,234,28]}
+{"kind":"textbox","slide":8,"role":"card label","text":"Client","bbox":[930,390,234,28]}
+{"kind":"shape","slide":8,"role":"card body","bbox":[866,458,294,98]}
+{"kind":"textbox","slide":8,"role":"card body","text":"Can onboard and report only under its own account. No cross-account visibility.","bbox":[866,458,294,98]}
+{"kind":"shape","slide":8,"role":"footer rule","bbox":[64,654,1152,1.5]}
+{"kind":"shape","slide":8,"role":"footer","bbox":[64,668,260,24]}
+{"kind":"textbox","slide":8,"role":"footer","text":"MCP Shield demo","bbox":[64,668,260,24]}
+{"kind":"shape","slide":8,"role":"footer","bbox":[1112,668,104,24]}
+{"kind":"textbox","slide":8,"role":"footer","text":"08 / 09","bbox":[1112,668,104,24]}
+{"kind":"shape","slide":9,"role":"kicker","bbox":[64,34,430,24]}
+{"kind":"textbox","slide":9,"role":"kicker","text":"NEXT STEPS","bbox":[64,34,430,24]}
+{"kind":"shape","slide":9,"role":"status mark","bbox":[1152,30,26,26]}
+{"kind":"shape","slide":9,"role":"status mark","bbox":[1188,30,26,26]}
+{"kind":"shape","slide":9,"role":"title","bbox":[64,86,760,92]}
+{"kind":"textbox","slide":9,"role":"title","text":"Production readiness path","bbox":[64,86,760,92]}
+{"kind":"shape","slide":9,"role":"subtitle","bbox":[66,184,760,68]}
+{"kind":"textbox","slide":9,"role":"subtitle","text":"The prototype demonstrates the product behavior. Production should enforce the same rules in backend authorization.","bbox":[66,184,760,68]}
+{"kind":"shape","slide":9,"role":"metric API","bbox":[74,350,350,226]}
+{"kind":"shape","slide":9,"role":"metric accent API","bbox":[74,350,350,8]}
+{"kind":"shape","slide":9,"role":"metric heading","bbox":[98,376,302,46]}
+{"kind":"textbox","slide":9,"role":"metric heading","text":"API","bbox":[98,376,302,46]}
+{"kind":"shape","slide":9,"role":"metric label","bbox":[98,434,302,32]}
+{"kind":"textbox","slide":9,"role":"metric label","text":"Server-side scope checks","bbox":[98,434,302,32]}
+{"kind":"shape","slide":9,"role":"metric note","bbox":[98,476,302,80]}
+{"kind":"textbox","slide":9,"role":"metric note","text":"Validate role, ownerId, assignedClientIds, and service access on every request.","bbox":[98,476,302,80]}
+{"kind":"shape","slide":9,"role":"metric Data","bbox":[456,350,350,226]}
+{"kind":"shape","slide":9,"role":"metric accent Data","bbox":[456,350,350,8]}
+{"kind":"shape","slide":9,"role":"metric heading","bbox":[480,376,302,46]}
+{"kind":"textbox","slide":9,"role":"metric heading","text":"Data","bbox":[480,376,302,46]}
+{"kind":"shape","slide":9,"role":"metric label","bbox":[480,434,302,32]}
+{"kind":"textbox","slide":9,"role":"metric label","text":"Persist ownership","bbox":[480,434,302,32]}
+{"kind":"shape","slide":9,"role":"metric note","bbox":[480,476,302,80]}
+{"kind":"textbox","slide":9,"role":"metric note","text":"Reports and services need durable account owner metadata.","bbox":[480,476,302,80]}
+{"kind":"shape","slide":9,"role":"metric Audit","bbox":[838,350,350,226]}
+{"kind":"shape","slide":9,"role":"metric accent Audit","bbox":[838,350,350,8]}
+{"kind":"shape","slide":9,"role":"metric heading","bbox":[862,376,302,46]}
+{"kind":"textbox","slide":9,"role":"metric heading","text":"Audit","bbox":[862,376,302,46]}
+{"kind":"shape","slide":9,"role":"metric label","bbox":[862,434,302,32]}
+{"kind":"textbox","slide":9,"role":"metric label","text":"Trace delegated actions","bbox":[862,434,302,32]}
+{"kind":"shape","slide":9,"role":"metric note","bbox":[862,476,302,80]}
+{"kind":"textbox","slide":9,"role":"metric note","text":"Record who onboarded services and who generated each report.","bbox":[862,476,302,80]}
+{"kind":"shape","slide":9,"role":"footer rule","bbox":[64,654,1152,1.5]}
+{"kind":"shape","slide":9,"role":"footer","bbox":[64,668,260,24]}
+{"kind":"textbox","slide":9,"role":"footer","text":"MCP Shield demo","bbox":[64,668,260,24]}
+{"kind":"shape","slide":9,"role":"footer","bbox":[1112,668,104,24]}
+{"kind":"textbox","slide":9,"role":"footer","text":"09 / 09","bbox":[1112,668,104,24]}

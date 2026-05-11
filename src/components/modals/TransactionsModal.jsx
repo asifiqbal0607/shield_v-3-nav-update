@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { createPortal } from "react-dom";
+import { useState, useEffect } from "react";
 import { transactionRows } from "../../data/tables";
 import TransactionDetailModal from "./TransactionDetailModal";
 import TransactionDashboardModal from "./TransactionDashboardModal";
 import { CheckIcon, CopyIcon } from "../ui/Icons";
+import { getFraudReasonColor, getFraudReasonTitle } from "../../pages/FraudCodes";
 
 /* ── Risk helpers ───────────────────────────────────────────────
    Score 0–10:  7.9–10 = Clean | 3.9–7.9 = Low Risk | 0–3.9 = High Risk
@@ -44,39 +44,33 @@ function RiskCell({ score }) {
 }
 
 /* ── Stat Bar ───────────────────────────────────────────────── */
-function StatBar({ total, clearCount, blockCount, suspectCount, onFilter }) {
+function StatBar({ total, clearCount, blockCount, suspectCount, activeFilter, onFilter }) {
   const blockRate = total > 0 ? ((blockCount / total) * 100).toFixed(1) : "0.0";
+  const items = [
+    { key: "All", label: "Total", value: total >= 1000 ? `${Math.round(total / 1000)}k` : total, dot: "all" },
+    { key: "Clear", label: "Clear", value: clearCount, dot: "clear" },
+    { key: "Blocked", label: "Blocked", value: blockCount, dot: "block" },
+    { key: "Suspect", label: "Suspect", value: suspectCount, dot: "suspect" },
+  ];
+
   return (
     <div className="txn-stat-bar">
-      <div className="txn-stat-cell" onClick={() => onFilter("All")}>
-        <span className="txn-stat-dot dot-stat-all" />
-        <div>
-          <div className="txn-stat-num">{total >= 1000 ? `${Math.round(total / 1000)}k` : total}</div>
-          <div className="txn-stat-lbl">Total</div>
-        </div>
-      </div>
-      <div className="txn-stat-cell" onClick={() => onFilter("Clear")}>
-        <span className="txn-stat-dot dot-stat-clear" />
-        <div>
-          <div className="txn-stat-num">{clearCount}</div>
-          <div className="txn-stat-lbl">Clear</div>
-        </div>
-      </div>
-      <div className="txn-stat-cell" onClick={() => onFilter("Block")}>
-        <span className="txn-stat-dot dot-stat-block" />
-        <div>
-          <div className="txn-stat-num">{blockCount}</div>
-          <div className="txn-stat-lbl">Blocked</div>
-        </div>
-      </div>
-      <div className="txn-stat-cell" onClick={() => onFilter("Suspect")}>
-        <span className="txn-stat-dot dot-stat-suspect" />
-        <div>
-          <div className="txn-stat-num">{suspectCount}</div>
-          <div className="txn-stat-lbl">Suspect</div>
-        </div>
-      </div>
-      <div className="txn-stat-cell">
+      {items.map((item) => (
+        <button
+          key={item.key}
+          type="button"
+          className={`txn-stat-cell${activeFilter === item.key ? " active" : ""}`}
+          onClick={() => onFilter(item.key)}
+          aria-pressed={activeFilter === item.key}
+        >
+          <span className={`txn-stat-dot dot-stat-${item.dot}`} />
+          <span>
+            <span className="txn-stat-num">{item.value}</span>
+            <span className="txn-stat-lbl">{item.label}</span>
+          </span>
+        </button>
+      ))}
+      <div className="txn-stat-cell txn-stat-cell--readonly">
         <span className="txn-stat-dot dot-stat-warn" />
         <div>
           <div className="txn-stat-num">{blockRate}%</div>
@@ -145,67 +139,63 @@ function CopyCell({ value, display, className }) {
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50];
 
-const VISIBLE_REASONS = 2;
+function getReasonClass(code) {
+  return `rsn-${String(code).replace(/[^a-z0-9]/gi, "").toLowerCase()}`;
+}
 
 function ReasonCell({ reasons }) {
-  const [open, setOpen] = useState(false);
-  const [pos, setPos] = useState({ top: 0, left: 0 });
-  const btnRef = useRef(null);
-  const visible = reasons.slice(0, VISIBLE_REASONS);
-  const extra = reasons.slice(VISIBLE_REASONS);
-
-  function handleOpen(e) {
-    e.stopPropagation();
-    if (btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 5, left: r.left });
-    }
-    setOpen((v) => !v);
-  }
+  const [expanded, setExpanded] = useState(false);
+  const visibleReasons = expanded ? reasons : reasons.slice(0, 2);
+  const hiddenReasons = reasons.slice(2);
+  const hiddenTitle = hiddenReasons
+    .map((rsn) => {
+      const title = getFraudReasonTitle(rsn);
+      return `${rsn}${title ? ` - ${title}` : ""}`;
+    })
+    .join("\n");
 
   return (
-    <div className="txn-reasons-wrap">
-      {visible.map((rsn) => (
-        <span
-          key={rsn}
-          className={`txn-reason-badge rsn-${rsn.replace(/[^a-z0-9]/gi, "").toLowerCase()}`}
-        >
-          {rsn}
-        </span>
-      ))}
-      {extra.length > 0 && (
-        <>
-          <button
-            ref={btnRef}
-            className={`txn-reason-more-btn${open ? " active" : ""}`}
-            onClick={handleOpen}
+    <div className={`txn-reasons-wrap${expanded ? " expanded" : ""}`}>
+      {visibleReasons.map((rsn) => {
+        const title = getFraudReasonTitle(rsn);
+        return (
+          <span
+            key={rsn}
+            className={`txn-reason-badge ${getReasonClass(rsn)}`}
+            style={{ "--reason-color": getFraudReasonColor(rsn) }}
+            title={`${rsn}${title ? ` - ${title}` : ""}`}
           >
-            +{extra.length}
-          </button>
-          {open &&
-            createPortal(
-              <>
-                <div
-                  className="txn-reason-overlay"
-                  onClick={() => setOpen(false)}
-                />
-                <div
-                  className="txn-reason-popover"
-                  style={{ top: pos.top, left: pos.left }}
-                >
-                  {extra.map((rsn) => (
-                    <span
-                      key={rsn}
-                      className={`txn-reason-badge rsn-${rsn.replace(/[^a-z0-9]/gi, "").toLowerCase()}`}
-                    >
-                      {rsn}
-                    </span>
-                  ))}
-                </div>
-              </>,
-              document.body,
-            )}
-        </>
+            <span className="txn-reason-code-text">{rsn}</span>
+          </span>
+        );
+      })}
+      {!expanded && hiddenReasons.length > 0 && (
+        <button
+          type="button"
+          className="txn-reason-more-chip"
+          title={hiddenTitle}
+          onClick={(event) => {
+            event.stopPropagation();
+            setExpanded(true);
+          }}
+        >
+          +{hiddenReasons.length}
+        </button>
+      )}
+      {expanded && hiddenReasons.length > 0 && (
+        <button
+          type="button"
+          className="txn-reason-more-chip txn-reason-less-chip"
+          onClick={(event) => {
+            event.stopPropagation();
+            setExpanded(false);
+          }}
+        >
+          Less
+        </button>
+      )}
+      {!reasons.length && (
+        <span className="txn-reason-none">No reason</span>
       )}
     </div>
   );
@@ -224,7 +214,7 @@ export default function TransactionsModal({
   const [search, setSearch] = useState(initialIp);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [statusFilter, setStatusFilter] = useState("All"); // "All" | "Clear" | "Block"
+  const [statusFilter, setStatusFilter] = useState("All"); // "All" | "Clear" | "Blocked" | "Suspect"
 
   useEffect(() => {
     const handler = (e) => {
@@ -244,8 +234,8 @@ export default function TransactionsModal({
       r.userIp.includes(search);
     const matchStatus =
       statusFilter === "All" ||
-      (statusFilter === "Block"   && r.status === "Block")   ||
-      (statusFilter === "Clear"   && r.status === "Clear")   ||
+      (statusFilter === "Blocked" && r.status === "Block") ||
+      (statusFilter === "Clear" && r.status === "Clear") ||
       (statusFilter === "Suspect" && r.status === "Suspect");
     return matchSearch && matchStatus;
   });
@@ -319,6 +309,7 @@ export default function TransactionsModal({
           clearCount={countClear}
           blockCount={countBlock}
           suspectCount={countSuspect}
+          activeFilter={statusFilter}
           onFilter={(f) => { setStatusFilter(f); setPage(1); }}
         />
 

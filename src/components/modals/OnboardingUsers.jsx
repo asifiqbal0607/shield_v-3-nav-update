@@ -450,6 +450,130 @@ const NETWORK_OPTIONS = ["Network A", "Network B", "Network C"];
 const COUNTRY_OPTIONS = ["USA", "UK", "Germany", "France", "UAE", "Singapore"];
 const C_ADMIN_OPTIONS = ["C-Admin Alpha", "C-Admin Beta", "C-Admin Gamma"];
 
+function toggleListValue(list, value) {
+  return list.includes(value)
+    ? list.filter((item) => item !== value)
+    : [...list, value];
+}
+
+function getClientServices(clientAccounts, clientId) {
+  const client = clientAccounts.find((u) => u.id === clientId);
+  return client?.services?.length ? client.services : SERVICE_OPTIONS;
+}
+
+function ClientServiceAssignment({
+  clientAccounts,
+  selectedClients,
+  serviceAccess,
+  onChange,
+}) {
+  const [serviceSearch, setServiceSearch] = useState({});
+
+  if (!selectedClients.length) {
+    return (
+      <p className="obf-hint">
+        Select one or more clients, then choose the services this C-Admin can manage.
+      </p>
+    );
+  }
+
+  return (
+    <div className="obf-client-service-list">
+      {selectedClients.map((clientOpt) => {
+        const clientId = (clientOpt || "").split(" - ")[0];
+        const clientName = (clientOpt || "").split(" - ").slice(1).join(" - ") || clientOpt;
+        const serviceOptions = getClientServices(clientAccounts, clientId);
+        const selectedServices = serviceAccess[clientId] || [];
+        const query = serviceSearch[clientId] || "";
+        const results = query.trim()
+          ? serviceOptions.filter((service) =>
+              service.toLowerCase().includes(query.trim().toLowerCase()),
+            )
+          : [];
+        const allSelected =
+          serviceOptions.length > 0 &&
+          serviceOptions.every((service) => selectedServices.includes(service));
+
+        return (
+          <div key={clientId} className="obf-client-service-card">
+            <div className="obf-client-service-head">
+              <div>
+                <div className="obf-client-service-name">{clientName}</div>
+                <div className="obf-client-service-count">
+                  {selectedServices.length} of {serviceOptions.length} services assigned
+                </div>
+              </div>
+              <button
+                type="button"
+                className="obf-link-btn"
+                onClick={() =>
+                  onChange(clientId, allSelected ? [] : [...serviceOptions])
+                }
+              >
+                {allSelected ? "Deselect All" : "Select All"}
+              </button>
+            </div>
+            {selectedServices.length > 0 && (
+              <div className="obf-selected-service-chips">
+                {selectedServices.map((service) => (
+                  <button
+                    key={service}
+                    type="button"
+                    className="obf-selected-service-chip"
+                    onClick={() =>
+                      onChange(clientId, selectedServices.filter((item) => item !== service))
+                    }
+                  >
+                    <span>{service}</span>
+                    <strong>x</strong>
+                  </button>
+                ))}
+              </div>
+            )}
+            <input
+              className="obf-service-search"
+              placeholder={`Search ${clientName} services...`}
+              value={query}
+              onChange={(e) =>
+                setServiceSearch((prev) => ({
+                  ...prev,
+                  [clientId]: e.target.value,
+                }))
+              }
+            />
+            <div className="obf-service-search-results">
+              {!query.trim() ? (
+                <div className="obf-service-search-empty">
+                  Search to assign services for this client.
+                </div>
+              ) : results.length === 0 ? (
+                <div className="obf-service-search-empty">No matching services found.</div>
+              ) : (
+                results.map((service) => {
+                  const selected = selectedServices.includes(service);
+                  return (
+                    <button
+                      key={service}
+                      type="button"
+                      className={`obf-service-result${selected ? " selected" : ""}`}
+                      onClick={() =>
+                        onChange(clientId, toggleListValue(selectedServices, service))
+                      }
+                    >
+                      <span>{service}</span>
+                      <strong>{selected ? "Selected" : "Add"}</strong>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 // ════════════════════════════════════════════════════════════════════════════
 //  SHARED HEADER  (used by both forms)
 // ════════════════════════════════════════════════════════════════════════════
@@ -508,6 +632,7 @@ function AdminForm({ onClose, setPage, onAdd, clientAccounts = [] }) {
   const [parentClientOpt, setParentClientOpt] = useState("");
   const [subServices, setSubServices] = useState([]);
   const [publisherClients, setPublisherClients] = useState([]);
+  const [cAdminServiceAccess, setCAdminServiceAccess] = useState({});
   const [assignedNet, setAssignedNet] = useState("");
   const [countries, setCountries] = useState("");
   const [adHocRule, setAdHocRule] = useState("No");
@@ -562,6 +687,17 @@ function AdminForm({ onClose, setPage, onAdd, clientAccounts = [] }) {
 
     if (roleLabel === "Clients") {
       newUser.services = services;
+    }
+
+    if (roleLabel === "C-Admins") {
+      newUser.assignedClientIds = publisherClients.map(parseClientId).filter(Boolean);
+      newUser.assignedClientServices = Object.fromEntries(
+        newUser.assignedClientIds.map((clientId) => [
+          clientId,
+          cAdminServiceAccess[clientId] || [],
+        ]),
+      );
+      newUser.serviceOnboardingEnabled = newUser.assignedClientIds.length > 0;
     }
 
     if (roleLabel === "Sub Account") {
@@ -623,12 +759,27 @@ function AdminForm({ onClose, setPage, onAdd, clientAccounts = [] }) {
     setSubServices((prev) => prev.filter((s) => parentServiceOptions.includes(s)));
   }, [parentClientOpt]);
 
+  useEffect(() => {
+    if (!isCAdmin) return;
+    const selectedIds = publisherClients.map(parseClientId).filter(Boolean);
+    setCAdminServiceAccess((prev) => {
+      const next = {};
+      selectedIds.forEach((clientId) => {
+        const serviceOptions = getClientServices(clientAccounts, clientId);
+        next[clientId] = (prev[clientId] || []).filter((service) =>
+          serviceOptions.includes(service),
+        );
+      });
+      return next;
+    });
+  }, [isCAdmin, publisherClients, clientAccounts]);
+
   const showAdHocRule = isClient || isClientPartner;
   const showIPs = isClient;
   const showIPRanges = isClient;
-  const showClientSingle = isAdmin || isCAdmin;
-  const showPublisherClients = isPublisher;
-  const showServices = isAdmin || isCAdmin || isClientPartner || isClient;
+  const showClientSingle = isAdmin;
+  const showPublisherClients = isPublisher || isCAdmin;
+  const showServices = isAdmin || isClientPartner || isClient;
   const showNetworks = isAdmin || isCAdmin || isClientPartner;
   const showCountries = isAdmin || isPublisher || isClientPartner;
   const showCAdmins = isSupperClient || isPublisher;
@@ -638,7 +789,12 @@ function AdminForm({ onClose, setPage, onAdd, clientAccounts = [] }) {
   const saveDisabled =
     !name.trim() ||
     emails.map((e) => e.trim()).every((e) => !e) ||
-    (isSubAccount && !parentClientId);
+    (isSubAccount && !parentClientId) ||
+    (isCAdmin &&
+      (publisherClients.length === 0 ||
+        publisherClients
+          .map(parseClientId)
+          .some((clientId) => !(cAdminServiceAccess[clientId] || []).length)));
 
   return (
     <>
@@ -940,6 +1096,19 @@ function AdminForm({ onClose, setPage, onAdd, clientAccounts = [] }) {
                   );
                 }}
               />
+              {isCAdmin && (
+                <ClientServiceAssignment
+                  clientAccounts={clientAccounts}
+                  selectedClients={publisherClients}
+                  serviceAccess={cAdminServiceAccess}
+                  onChange={(clientId, servicesForClient) =>
+                    setCAdminServiceAccess((prev) => ({
+                      ...prev,
+                      [clientId]: servicesForClient,
+                    }))
+                  }
+                />
+              )}
             </Field>
           )}
 

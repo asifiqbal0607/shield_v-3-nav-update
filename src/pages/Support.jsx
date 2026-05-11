@@ -2,7 +2,8 @@ import React, { useState } from "react";
 import { createPortal } from "react-dom";
 import { Card, SectionTitle } from "../components/ui";
 import { transactionRows } from "../data/tables";
-import { FRAUD_DESCRIPTIONS } from "./FraudCodes";
+import { FRAUD_DESCRIPTIONS, getFraudReasonColor, getFraudReasonTitle } from "./FraudCodes";
+import { makeTransactionDetail } from "../models/transactions";
 import {
   PlusIcon, SendIcon, MessageIcon, SearchIcon,
 } from "../components/ui/Icons";
@@ -383,23 +384,29 @@ function buildTransactionReply(message) {
     };
   }
 
-  const isBlocked = row.status === "Block";
-  const hasShieldBypassing = isBlocked && row.reasons?.includes("MCPS-1300");
-  const visibleReasons = hasShieldBypassing ? ["MCPS-1300"] : row.reasons;
+  const detail = makeTransactionDetail(row);
+  const isBlocked = detail.status === "Block";
+  const hasShieldBypassing = isBlocked && detail.reasons?.includes("MCPS-1300");
+  const visibleReasons = hasShieldBypassing ? ["MCPS-1300"] : detail.reasons;
   const reasons = visibleReasons?.length ? visibleReasons.join(", ") : "no block reason codes";
   const primaryReason = visibleReasons?.[0];
-  const primaryReasonTitle = BLOCK_REASON_META[primaryReason]?.title || primaryReason || "not available";
+  const primaryReasonTitle = getFraudReasonTitle(primaryReason) || BLOCK_REASON_META[primaryReason]?.title || primaryReason || "not available";
   return {
     type: "transaction",
-    decision: row.status,
-    score: row.score ?? "-",
-    network: row.network || "-",
-    apk: row.apk || "-",
+    decision: detail.status,
+    score: detail.score ?? "-",
+    network: detail.network || "-",
+    apk: detail.apk || "-",
+    userIp: detail.userIp || "-",
+    relatedIps: visibleReasons.includes("MCPS-8000") ? detail.relatedIps : [],
+    userAgent: detail.userAgent || "-",
+    device: detail.device || "-",
     reasons,
+    reasonCodes: visibleReasons || [],
     title: hasShieldBypassing
       ? "Blocked by Shield Bypassing"
       : isBlocked ? "This transaction was blocked" : "This transaction was not blocked",
-    text: `${row.id} shows status ${row.status}, score ${row.score ?? "-"}, network ${row.network || "-"}, APK ${row.apk || "-"}, and reason codes: ${reasons}.`,
+    text: `UNIQID: ${row.id}`,
     next: hasShieldBypassing
       ? "Shield Bypassing means the Shield JS snippet was not rendered on the page. Ask the partner to confirm the snippet is present before the protected action and share the page URL, browser/device details, and implementation notes if they believe this was a valid test."
       : isBlocked
@@ -459,6 +466,13 @@ function ShieldAIChatbot({ tickets, onNew }) {
     window.localStorage.setItem(CHATBOT_STORAGE_KEY, JSON.stringify(messages));
   }, [messages]);
 
+  function clearChat() {
+    window.localStorage.removeItem(CHATBOT_STORAGE_KEY);
+    setMessages([CHATBOT_WELCOME_MESSAGE]);
+    setInput("");
+    setIsTyping(false);
+  }
+
   function sendMessage(text = input) {
     const clean = text.trim();
     if (!clean || isTyping) return;
@@ -501,6 +515,9 @@ function ShieldAIChatbot({ tickets, onNew }) {
             <h2 className="spt-ai-title">Shield AI Chat Bot</h2>
             <p className="spt-ai-sub">Partner support assistant for Shield queries</p>
           </div>
+          <button type="button" className="spt-ai-clear-btn" onClick={clearChat}>
+            Clear Chat
+          </button>
         </div>
 
         <div className="spt-ai-messages" aria-live="polite">
@@ -527,11 +544,55 @@ function ShieldAIChatbot({ tickets, onNew }) {
                       <span>APK</span>
                       <strong>{msg.apk}</strong>
                     </div>
+                    <div>
+                      <span>User IP</span>
+                      <strong>{msg.userIp}</strong>
+                    </div>
+                    <div>
+                      <span>Device Name</span>
+                      <strong>{msg.device}</strong>
+                    </div>
+                  </div>
+                  <div className="spt-ai-result-wide">
+                    <span>User Agent</span>
+                    <strong>{msg.userAgent}</strong>
                   </div>
                   <div className="spt-ai-result-reason">
-                    <span>Primary Reason</span>
-                    <strong>{msg.reasons}</strong>
+                    <span>Block Reason</span>
+                    {msg.reasonCodes?.length ? (
+                      <div className="spt-ai-reason-chip-list">
+                        {msg.reasonCodes.map((code) => {
+                          const title = getFraudReasonTitle(code);
+                          return (
+                            <span
+                              key={code}
+                              className="spt-ai-reason-chip"
+                              style={{ "--reason-color": getFraudReasonColor(code) }}
+                              title={title ? `${code} - ${title}` : code}
+                            >
+                              <span>{code}</span>
+                              {title && <strong>{title}</strong>}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <strong>{msg.reasons}</strong>
+                    )}
                   </div>
+                  {msg.relatedIps?.length > 0 && (
+                    <div className="spt-ai-related-ips">
+                      <div className="spt-ai-related-ips-head">
+                        <span>Related IPs</span>
+                        <strong>{msg.relatedIps.length} IPs detected</strong>
+                      </div>
+                      <div className="spt-ai-related-ips-list">
+                        {msg.relatedIps.map((ip) => (
+                          <span key={ip}>{ip}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="spt-ai-msg-text">{msg.text}</div>

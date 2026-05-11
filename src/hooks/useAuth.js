@@ -29,9 +29,12 @@ import {
 export function useAuth() {
   const [auth,        setAuth]        = useState(() => loadSession());
   const [role,        setRole]        = useState(() => loadSession() || "admin");
-  const [userType,    setUserType]    = useState(() =>
-    loadSession() === "partner" ? "Client Partner" : "Admin",
-  );
+  const [userType,    setUserType]    = useState(() => {
+    const session = loadSession();
+    if (session === "partner") return "Client Partner";
+    if (session === "c-admin") return "C-Admin";
+    return "Admin";
+  });
   const [showLogout,  setShowLogout]  = useState(false);
   const timerRef = useRef(null);
 
@@ -63,14 +66,14 @@ export function useAuth() {
   // ── Actions ───────────────────────────────────────────────────────────────
   const handleLogin = (r) => {
     setRole(r);
-    setUserType(r === "partner" ? "Client Partner" : "Admin");
+    setUserType(r === "partner" ? "Client Partner" : r === "c-admin" ? "C-Admin" : "Admin");
     setAuth(r);
     saveSession(r);
   };
 
   const handleSetRole = (r) => {
     setRole(r);
-    setUserType(r === "partner" ? "Client Partner" : "Admin");
+    setUserType(r === "partner" ? "Client Partner" : r === "c-admin" ? "C-Admin" : "Admin");
     saveSession(r);
   };
 

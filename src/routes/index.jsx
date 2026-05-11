@@ -33,17 +33,39 @@ export default function PageRouter({
   setPage,
 }) {
   const key = ALIASES[page] ?? page;
+  const clientFacingRole = role === "c-admin" ? "partner" : role;
+  const cAdminAllowedPages = new Set([
+    "overview",
+    "reporting",
+    "traffic-sources",
+    "services",
+    "onboarding",
+    "svc-onboarding",
+    "fraud-codes",
+    "block",
+    "device",
+    "geo",
+    "apks",
+    "docs",
+    "sandbox",
+    "support",
+  ]);
 
-  if (key === "fraud-codes" && role === "partner") {
+  if (role === "c-admin" && !cAdminAllowedPages.has(key)) {
+    return <PageOverview role={role} setPage={setPage} />;
+  }
+
+  if (key === "fraud-codes" && (role === "partner" || role === "c-admin")) {
     return <PageOverview role={role} setPage={setPage} />;
   }
 
   if (key === "users") return <PageUsers role={role} setPage={setPage} />;
   if (key === "services") return <PageServices role={role} setPage={setPage} />;
 
-  if (key === "onboarding") return <PageOnboardingServices setPage={setPage} />;
+  if (key === "onboarding")
+    return <PageOnboardingServices setPage={setPage} role={role} pageContext={pageContext} />;
   if (key === "svc-onboarding")
-    return <PageOnboardingServices setPage={setPage} />;
+    return <PageOnboardingServices setPage={setPage} role={role} pageContext={pageContext} />;
 
   if (key === "user-onboarding")
     return <PageOnboardingUsers setPage={setPage} role={role} />;
@@ -61,18 +83,18 @@ export default function PageRouter({
     ),
     reporting: <PageReporting role={role} />,
     block: <PageBlock />,
-    apks: <PageAPKs role={role} />,
-    device: <PageDevice role={role} />,
+    apks: <PageAPKs role={clientFacingRole} />,
+    device: <PageDevice role={clientFacingRole} />,
     geo: <PageGeo />,
     partners: <PagePartners />,
-    "fraud-codes": <PageFraudCodes role={role} />,
+    "fraud-codes": <PageFraudCodes role={clientFacingRole} />,
     audit: <PageStub title="Audit Log" icon="📋" />,
     docs: <PageStub title="Documentation" icon="📖" />,
     sandbox: <PageStub title="Sandbox Environment" icon="🧪" />,
     "password-generator": <PagePasswordGenerator />,
-    "ip-manager": <PageIPManager role={role} />,
-    "traffic-sources": <Trafficsources role={role} />,
-    "support": <PageSupport role={role} />,
+    "ip-manager": <PageIPManager role={clientFacingRole} />,
+    "traffic-sources": <Trafficsources role={clientFacingRole} />,
+    "support": <PageSupport role={clientFacingRole} />,
   };
 
   return ROUTES[key] ?? <PageOverview role={role} setPage={setPage} />;

@@ -23,10 +23,11 @@ export default function Logout({ role, onConfirm, onCancel }) {
   };
 
   const isAdmin      = role === "admin";
-  const displayName  = isAdmin ? "Admin User"         : "Partner User";
-  const displayEmail = isAdmin ? "admin@shield.com"   : "partner@shield.com";
-  const roleLabel    = isAdmin ? "Administrator"      : "Partner";
-  const avatarLetter = isAdmin ? "A"                  : "P";
+  const isCAdmin     = role === "c-admin";
+  const displayName  = isAdmin ? "Admin User" : isCAdmin ? "Liam Patel" : "Partner User";
+  const displayEmail = isAdmin ? "admin@shield.com" : isCAdmin ? "cadmin@shield.com" : "partner@shield.com";
+  const roleLabel    = isAdmin ? "Administrator" : isCAdmin ? "C-Admin" : "Partner";
+  const avatarLetter = isAdmin ? "A" : isCAdmin ? "C" : "P";
 
   return (
     <div className="logout-root">
