@@ -33,7 +33,7 @@ export default function PageRouter({
   setPage,
 }) {
   const key = ALIASES[page] ?? page;
-  const clientFacingRole = role === "c-admin" ? "partner" : role;
+  const clientFacingRole = role === "c-admin" || role === "client" ? "partner" : role;
   const cAdminAllowedPages = new Set([
     "overview",
     "reporting",
@@ -55,7 +55,7 @@ export default function PageRouter({
     return <PageOverview role={role} setPage={setPage} />;
   }
 
-  if (key === "fraud-codes" && (role === "partner" || role === "c-admin")) {
+  if (key === "fraud-codes" && (role === "partner" || role === "client" || role === "c-admin")) {
     return <PageOverview role={role} setPage={setPage} />;
   }
 
@@ -78,7 +78,7 @@ export default function PageRouter({
         initialFilter={pageContext?.filterName ?? null}
         filterType={pageContext?.filterType ?? null}
         globalFilters={pageContext?.globalFilters ?? null}
-        capLimit={role === "partner" ? { value: 500, period: "day", usedToday: 347 } : null}
+        capLimit={role === "partner" || role === "client" ? { value: 500, period: "day", usedToday: 347 } : null}
       />
     ),
     reporting: <PageReporting role={role} />,
@@ -94,7 +94,7 @@ export default function PageRouter({
     "password-generator": <PagePasswordGenerator />,
     "ip-manager": <PageIPManager role={clientFacingRole} />,
     "traffic-sources": <Trafficsources role={clientFacingRole} />,
-    "support": <PageSupport role={clientFacingRole} />,
+    "support": <PageSupport role={role === "client" ? "client" : clientFacingRole} />,
   };
 
   return ROUTES[key] ?? <PageOverview role={role} setPage={setPage} />;

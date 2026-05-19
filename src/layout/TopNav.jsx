@@ -100,18 +100,31 @@ export default function TopNav({ role, setPage, onLogout }) {
   }, [notifOpen]);
 
   const isPartner    = role === "partner";
+  const isClient     = role === "client";
   const isCAdmin     = role === "c-admin";
+  const isClientFacing = isPartner || isClient;
   const { getUnreadCount } = useTickets();
-  const supportUnread = isPartner ? getUnreadCount("Tiot") : 0;
+  const supportUnread = isClientFacing ? getUnreadCount(isClient ? "True Digital" : "Tiot") : 0;
   const UNREAD_COUNT  = PARTNER_ALERTS.length;
 
   return (
     <header className="topbar">
       {/* Brand */}
       <div className="topbar-brand">
-        <span className="topbar-logo">S</span>
+        <span className="topbar-logo" aria-label="MCP Shield">
+          <svg className="topbar-logo-mark" viewBox="0 0 220 160" aria-hidden="true" focusable="false">
+            <path
+              className="topbar-logo-line"
+              d="M18 80C48 30 78 14 110 14s62 16 92 66c-30 50-60 66-92 66S48 130 18 80Z"
+            />
+            <path className="topbar-logo-detail" d="M18 80h184" />
+            <circle className="topbar-logo-line" cx="110" cy="80" r="38" />
+            <circle className="topbar-logo-detail" cx="110" cy="80" r="24" />
+            <circle className="topbar-logo-fill" cx="110" cy="80" r="12" />
+          </svg>
+        </span>
         <span className="topbar-name">MCP SHIELD</span>
-        <span className="topbar-sub">{isPartner ? "Partner" : isCAdmin ? "C-Admin" : "Admin"}</span>
+        <span className="topbar-sub">{isClient ? "Client" : isPartner ? "Partner" : isCAdmin ? "C-Admin" : "Admin"}</span>
       </div>
 
       {/* Right side */}
@@ -153,7 +166,7 @@ export default function TopNav({ role, setPage, onLogout }) {
         </div>
 
         {/* Bell — admin only */}
-        {!isPartner && (
+        {!isClientFacing && (
           <div className="topbar-notif-wrap" ref={notifWrapRef}>
             <button type="button" className="topbar-icon-btn"
               onClick={() => setNotifOpen((v) => !v)}>
@@ -195,7 +208,7 @@ export default function TopNav({ role, setPage, onLogout }) {
         )}
 
         {/* Support pill — partner only */}
-        {isPartner && (
+        {isClientFacing && (
           <div className="topbar-support-wrap">
             <button type="button" className="topbar-support-btn"
               onClick={() => setPage("support")}>
@@ -217,7 +230,7 @@ export default function TopNav({ role, setPage, onLogout }) {
         <div className="topbar-sep" />
 
         {/* Avatar */}
-        <div className="topbar-avatar">{isPartner ? "P" : "A"}</div>
+        <div className="topbar-avatar">{isClient ? "T" : isPartner ? "P" : isCAdmin ? "C" : "A"}</div>
 
         {/* Logout */}
         <button type="button" className="topbar-icon-btn topbar-logout" title="Sign out"

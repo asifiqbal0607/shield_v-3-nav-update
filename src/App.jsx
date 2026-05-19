@@ -88,7 +88,7 @@ export default function App() {
         page={page}
         setPage={handleNav}
         onLogout={() => setShowLogout(true)}
-        capLimit={role === "partner" ? { value: 500, period: "day", used: 347 } : null}
+        capLimit={role === "partner" || role === "client" ? { value: 500, period: "day", used: 347 } : null}
       >
         <PageRouter
           page={page}

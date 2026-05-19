@@ -2264,7 +2264,7 @@ function MapServiceModal({ row, onClose }) {
 // ─── Edit Modal ───────────────────────────────────────────────────────────────
 // Full onboarding form (all 8 steps) embedded in a modal, pre-filled from row.
 function EditServiceModal({ row, onClose, role = "admin" }) {
-  const isPartner = role === "partner";
+  const isPartner = role === "partner" || role === "client";
   const T = "#0d9488";
 
   // ── local sub-components (scoped to avoid conflicts) ──────────────────────
@@ -3450,7 +3450,7 @@ function SvcExportModal({
   role,
   initialPartner = null,
 }) {
-  const isPartnerRole = role === "partner";
+  const isPartnerRole = role === "partner" || role === "client";
 
   const baseRows =
     filter === "all"
@@ -3926,7 +3926,8 @@ export default function PageServices({ role = "admin", setPage }) {
     setTab(confirmToggle.status === "active" ? "inactive" : "active");
   }
 
-  const isPartner = role === "partner";
+  const isPartner = role === "partner" || role === "client";
+  const isClient = role === "client";
   const isAdmin = role === "admin";
   const isCAdmin = role === "c-admin";
   const cAdminAccount = getDemoCAdminAccount();
@@ -3938,6 +3939,8 @@ export default function PageServices({ role = "admin", setPage }) {
         return cAdminClientNames.includes(service.client) &&
           isServiceAllowedForCAdmin(service, cAdminAccount, client);
       })
+    : isClient
+      ? services.filter((service) => service.client === "True Digital")
     : services;
   const selectedCAdminClient =
     cAdminClients.find((client) => client.id === cAdminClientId) || null;

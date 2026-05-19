@@ -87,6 +87,7 @@ export default function BlockRadarChart({
   seriesLimit = 5,
   onChartClick,
   onDayClick,
+  data = blockReasons,
 }) {
   const [hidden, setHidden] = useState({});
   const [hovered, setHovered] = useState(null);
@@ -96,7 +97,7 @@ export default function BlockRadarChart({
 
   // Sum each series across all days for the hover tooltip
   const totals = series.reduce((acc, b) => {
-    acc[b.key] = blockReasons.reduce((sum, day) => sum + (day[b.key] || 0), 0);
+    acc[b.key] = data.reduce((sum, day) => sum + (day[b.key] || 0), 0);
     return acc;
   }, {});
 
@@ -115,7 +116,7 @@ export default function BlockRadarChart({
       <div className="ov-radar-chart-wrap">
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart
-            data={blockReasons}
+            data={data}
             margin={{ top: 16, right: 50, bottom: 16, left: 50 }}
           >
             <PolarGrid

@@ -93,6 +93,31 @@ function getCAdminPartnerPool(cAdmin = getDemoCAdminAccount()) {
 }
 
 // ── KPI data derived from real partner traffic ────────────────────────────────
+function getDemoClientAccount() {
+  return userRows.find((u) => u.id === "USR-051" && u.role === "Clients") ||
+    userRows.find((u) => u.role === "Clients" && u.services?.length) ||
+    null;
+}
+
+function getClientPartnerPool(client = getDemoClientAccount()) {
+  if (!client) return [];
+  const assignedNames = client.services || [];
+  const matchedServices = ALL_SERVICES.filter((service) =>
+    assignedNames.some((assigned) => serviceMatchesAssignment(service.name, assigned)),
+  );
+  const fallbackBase = Math.max(20000, (client.sessions || 100) * 40);
+  const baseTraffic = matchedServices.length
+    ? matchedServices.reduce((sum, service) => sum + service.baseTraffic, 0)
+    : fallbackBase;
+
+  return [{
+    id: 8000,
+    name: client.name,
+    services: matchedServices.map((service) => service.name),
+    baseTraffic,
+  }];
+}
+
 function buildKpiData(range, filterScale = 1, partnerPool = ALL_PARTNERS) {
   const periods = range === "1d" ? 1 : range === "7d" ? 7 : 30;
   const desc = range === "1d" ? "vs yesterday" : range === "7d" ? "vs prev 7d" : "vs prev 30d";
@@ -188,7 +213,24 @@ function buildHourlyData(partnerPool = ALL_PARTNERS) {
 }
 
 // ── Block reasons from real blockReasons data ────────────────────────────────
-function buildBlockReasons() {
+function getScopedTrafficScale(partnerPool = ALL_PARTNERS) {
+  const allTotal = dayTotal(0, ALL_PARTNERS).total;
+  const scopedTotal = dayTotal(0, partnerPool).total;
+  return allTotal > 0 ? scopedTotal / allTotal : 1;
+}
+
+function buildScopedBlockPattern(partnerPool = ALL_PARTNERS) {
+  const scale = getScopedTrafficScale(partnerPool);
+  return blockReasons.map((day) => {
+    const scopedDay = { subject: day.subject };
+    blockLegend.forEach(({ key }) => {
+      scopedDay[key] = Math.max(0, Math.round((day[key] || 0) * scale));
+    });
+    return scopedDay;
+  });
+}
+
+function buildBlockReasons(partnerPool = ALL_PARTNERS) {
   const COLOR_MAP = {
     "Shield Bypassing":    "#ef4444",
     "Desktop Traffic":     "#f59e0b",
@@ -201,7 +243,7 @@ function buildBlockReasons() {
   };
   const totals = {};
   blockLegend.forEach(({ key }) => { totals[key] = 0; });
-  blockReasons.forEach(day => blockLegend.forEach(({ key }) => { totals[key] += day[key] || 0; }));
+  buildScopedBlockPattern(partnerPool).forEach(day => blockLegend.forEach(({ key }) => { totals[key] += day[key] || 0; }));
   const grand = Object.values(totals).reduce((s, v) => s + v, 0);
   return blockLegend
     .map(({ key }) => ({ name: key, value: Math.round((totals[key] / grand) * 100), color: COLOR_MAP[key] || "#94a3b8", raw: totals[key] }))
@@ -210,14 +252,15 @@ function buildBlockReasons() {
 }
 
 // ── Channel data from histogramData ──────────────────────────────────────────
-function buildChannelData() {
+function buildChannelData(partnerPool = ALL_PARTNERS) {
   const totalV = histogramData.reduce((s, d) => s + d.visits, 0);
   const totalC = histogramData.reduce((s, d) => s + d.clicks, 0);
+  const scale = getScopedTrafficScale(partnerPool);
   return [
-    { name: "In-App",     color: "#3b82f6", clicks: Math.round(totalC * 0.38), visits: Math.round(totalV * 0.32) },
-    { name: "Browser",    color: "#22c55e", clicks: Math.round(totalC * 0.29), visits: Math.round(totalV * 0.30) },
-    { name: "Google",     color: "#f59e0b", clicks: Math.round(totalC * 0.21), visits: Math.round(totalV * 0.24) },
-    { name: "Non-Google", color: "#ef4444", clicks: Math.round(totalC * 0.12), visits: Math.round(totalV * 0.14) },
+    { name: "In-App",     color: "#3b82f6", clicks: Math.round(totalC * 0.38 * scale), visits: Math.round(totalV * 0.32 * scale) },
+    { name: "Browser",    color: "#22c55e", clicks: Math.round(totalC * 0.29 * scale), visits: Math.round(totalV * 0.30 * scale) },
+    { name: "Google",     color: "#f59e0b", clicks: Math.round(totalC * 0.21 * scale), visits: Math.round(totalV * 0.24 * scale) },
+    { name: "Non-Google", color: "#ef4444", clicks: Math.round(totalC * 0.12 * scale), visits: Math.round(totalV * 0.14 * scale) },
   ];
 }
 
@@ -231,8 +274,6 @@ function buildFraudScore(partnerPool = ALL_PARTNERS) {
 
 // ── Pre-compute stable values ─────────────────────────────────────────────────
 const HOURLY_DATA   = buildHourlyData();
-const BLOCK_REASONS = buildBlockReasons();
-const CHANNEL_DATA  = buildChannelData();
 const FRAUD_SCORE   = buildFraudScore();
 
 // ── Colour → CSS class (replaces all inline styles) ──
@@ -461,17 +502,25 @@ export default function PageOverview({
 }) {
   const isAdmin = role === "admin";
   const isCAdmin = role === "c-admin";
+  const isClient = role === "client";
   const cAdminAccount = useMemo(() => getDemoCAdminAccount(), []);
+  const clientAccount = useMemo(() => getDemoClientAccount(), []);
   const cAdminPartnerPool = useMemo(
     () => (isCAdmin ? getCAdminPartnerPool(cAdminAccount) : []),
     [isCAdmin, cAdminAccount],
+  );
+  const clientPartnerPool = useMemo(
+    () => (isClient ? getClientPartnerPool(clientAccount) : []),
+    [isClient, clientAccount],
   );
   const cAdminServicePool = useMemo(
     () => (isCAdmin ? getCAdminServicePool(cAdminAccount) : []),
     [isCAdmin, cAdminAccount],
   );
-  const scopedPartnerPool = isCAdmin ? cAdminPartnerPool : ALL_PARTNERS;
-  const scopedServiceNames = cAdminServicePool.map((service) => service.name);
+  const scopedPartnerPool = isCAdmin ? cAdminPartnerPool : isClient ? clientPartnerPool : ALL_PARTNERS;
+  const scopedServiceNames = isClient
+    ? clientPartnerPool.flatMap((partner) => partner.services || [])
+    : cAdminServicePool.map((service) => service.name);
   const [modal,       setModal]       = useState(null);
   const [selectedBar, setSelectedBar] = useState(initialFilter ?? null);
   const [rangeTab,    setRangeTab]    = useState("7d");
@@ -508,7 +557,7 @@ export default function PageOverview({
     if (isAdmin || isCAdmin) return null;
     // Flatten all services across all partners, sum their traffic
     const map = {};
-    ALL_PARTNERS.forEach(p => {
+    scopedPartnerPool.forEach(p => {
       (p.services || []).forEach(svc => {
         const key = svc.name ?? svc;
         if (!map[key]) map[key] = { name: key, total: 0 };
@@ -519,7 +568,7 @@ export default function PageOverview({
       });
     });
     return map;
-  }, [isAdmin, isCAdmin]);
+  }, [isAdmin, isCAdmin, scopedPartnerPool]);
 
   const filterScale = useMemo(() => {
     if (!selectedBar) return 1;
@@ -556,6 +605,18 @@ export default function PageOverview({
   );
   const fraudScore = useMemo(
     () => buildFraudScore(scopedPartnerPool),
+    [scopedPartnerPool],
+  );
+  const blockReasonsData = useMemo(
+    () => buildBlockReasons(scopedPartnerPool),
+    [scopedPartnerPool],
+  );
+  const blockPatternData = useMemo(
+    () => buildScopedBlockPattern(scopedPartnerPool),
+    [scopedPartnerPool],
+  );
+  const channelData = useMemo(
+    () => buildChannelData(scopedPartnerPool),
     [scopedPartnerPool],
   );
 
@@ -602,6 +663,7 @@ export default function PageOverview({
           title={isCAdmin ? "Assigned Clients by Traffic" : "Partners by Traffic"} />
       ) : (
         <ServicesTrafficChart days={1} onServiceFilter={handleBarFilter}
+          partnerServices={scopedServiceNames}
           initialName={filterType === "service" ? initialFilter : null} />
       )}
 
@@ -698,6 +760,7 @@ export default function PageOverview({
             <span className="ov2-radar-badge">7-day radar</span>
           </div>
           <BlockRadarChart height={320} showBadge={false}
+            data={blockPatternData}
             onDayClick={(day) => open(`${day} Block Pattern — Transactions`)} />
         </Card>
 
@@ -707,14 +770,14 @@ export default function PageOverview({
               <div className="ov2-card-title">Channels</div>
               <span className="ov2-card-sub">Click-through rate by source</span>
             </div>
-            <ChannelRows data={CHANNEL_DATA} filterScale={filterScale} onOpen={open} />
+            <ChannelRows data={channelData} filterScale={filterScale} onOpen={open} />
           </Card>
           <Card>
             <div className="ov2-card-header">
               <div className="ov2-card-title">Block Reasons</div>
               <span className="ov2-card-sub">This week</span>
             </div>
-            <BlockDonut data={BLOCK_REASONS} filterScale={filterScale} partnerPool={scopedPartnerPool} />
+            <BlockDonut data={blockReasonsData} filterScale={filterScale} partnerPool={scopedPartnerPool} />
           </Card>
         </div>
       </div>

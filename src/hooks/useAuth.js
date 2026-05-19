@@ -27,13 +27,18 @@ import {
 } from "../services/sessionService";
 
 export function useAuth() {
+  const getUserTypeForRole = (session) => {
+    if (session === "client") return "Client";
+    if (session === "partner") return "Client Partner";
+    if (session === "c-admin") return "C-Admin";
+    return "Admin";
+  };
+
   const [auth,        setAuth]        = useState(() => loadSession());
   const [role,        setRole]        = useState(() => loadSession() || "admin");
   const [userType,    setUserType]    = useState(() => {
     const session = loadSession();
-    if (session === "partner") return "Client Partner";
-    if (session === "c-admin") return "C-Admin";
-    return "Admin";
+    return getUserTypeForRole(session);
   });
   const [showLogout,  setShowLogout]  = useState(false);
   const timerRef = useRef(null);
@@ -66,14 +71,14 @@ export function useAuth() {
   // ── Actions ───────────────────────────────────────────────────────────────
   const handleLogin = (r) => {
     setRole(r);
-    setUserType(r === "partner" ? "Client Partner" : r === "c-admin" ? "C-Admin" : "Admin");
+    setUserType(getUserTypeForRole(r));
     setAuth(r);
     saveSession(r);
   };
 
   const handleSetRole = (r) => {
     setRole(r);
-    setUserType(r === "partner" ? "Client Partner" : r === "c-admin" ? "C-Admin" : "Admin");
+    setUserType(getUserTypeForRole(r));
     saveSession(r);
   };
 

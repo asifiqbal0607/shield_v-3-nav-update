@@ -10,6 +10,7 @@ import { EyeIcon, EyeOffIcon, AlertIcon, MailIcon } from "../components/ui/Icons
 
    Demo credentials (swap handleSubmit with a real API call when ready):
        admin@shield.com    /  admin
+       client@shield.com   /  client
        partner@shield.com  /  partner
        cadmin@shield.com   /  cadmin
 ───────────────────────────────────────────────────────────────────────────── */
@@ -37,12 +38,40 @@ const FEATURES = [
   },
 ];
 
+function MCPShieldLogo() {
+  return (
+    <div className="login-brand-logo" aria-label="MCP Shield">
+      <svg className="login-brand-eye" viewBox="0 0 220 160" aria-hidden="true">
+        <path
+          className="login-brand-eye-line"
+          d="M18 80C48 30 78 14 110 14s62 16 92 66c-30 50-60 66-92 66S48 130 18 80Z"
+        />
+        <path className="login-brand-eye-detail" d="M18 80h184" />
+        <path className="login-brand-eye-detail" d="M18 104h184" />
+        <circle className="login-brand-eye-line" cx="110" cy="80" r="38" />
+        <circle className="login-brand-eye-detail" cx="110" cy="80" r="24" />
+        <circle className="login-brand-eye-fill" cx="110" cy="80" r="12" />
+        <circle className="login-brand-eye-dot" cx="110" cy="80" r="5" />
+        <path className="login-brand-corner" d="M40 28v-18h20" />
+        <path className="login-brand-corner" d="M180 10h20v18" />
+        <path className="login-brand-corner" d="M40 132v18h20" />
+        <path className="login-brand-corner" d="M180 150h20v-18" />
+      </svg>
+      <div className="login-brand-wordmark">
+        <div className="login-brand-mcp">MCP</div>
+        <div className="login-brand-rule" />
+        <div className="login-brand-shield">SHIELD</div>
+        <div className="login-brand-tagline">Monitoring Compliance Partner</div>
+      </div>
+    </div>
+  );
+}
+
 /* ── Shared left brand panel ─────────────────────────────────────────────── */
 function BrandPanel() {
   return (
     <aside className="login-left">
-      <div className="login-logo">S</div>
-      <p className="login-eyebrow">MCP Shield</p>
+      <MCPShieldLogo />
       <h1 className="login-hero-title">
         Intelligent<br />Threat Protection
       </h1>
@@ -86,6 +115,8 @@ function LoginForm({ onLogin, onForgot }) {
     // ── Replace with your real API call ──────────────────────────────────
     if (email === "admin@shield.com" && password === "admin") {
       onLogin("admin");
+    } else if (email === "client@shield.com" && password === "client") {
+      onLogin("client");
     } else if (email === "partner@shield.com" && password === "partner") {
       onLogin("partner");
     } else if (email === "cadmin@shield.com" && password === "cadmin") {

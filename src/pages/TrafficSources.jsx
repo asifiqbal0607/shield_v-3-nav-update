@@ -17,8 +17,7 @@ const SOURCES = [
     id:"SRC-001", name:"Google Ads",       icon:"G", color:"#4285f4",
     identifier:"gclid", identifierLabel:"gclid param",
     visits:42800, clicks:37600, conversions:2462, convRate:7.2,
-    revenue:"$74,100", revShare:30, avgSession:"3m 22s",
-    bounce:32, status:"active", trend:"+19%", trendUp:true,
+    status:"active", trend:"+19%", trendUp:true,
     topCountry:"KE", topDevice:"Desktop",
     domains:["google.com","googleadservices.com"],
   },
@@ -26,8 +25,7 @@ const SOURCES = [
     id:"SRC-002", name:"Facebook",         icon:"F", color:"#18f2dc",
     identifier:"fbclid", identifierLabel:"fbclid param",
     visits:38600, clicks:32100, conversions:1621, convRate:5.7,
-    revenue:"$58,400", revShare:24, avgSession:"2m 48s",
-    bounce:41, status:"active", trend:"+14%", trendUp:true,
+    status:"active", trend:"+14%", trendUp:true,
     topCountry:"IQ", topDevice:"Mobile",
     domains:["facebook.com","m.facebook.com"],
   },
@@ -35,8 +33,7 @@ const SOURCES = [
     id:"SRC-003", name:"Instagram",        icon:"I", color:"#e1306c",
     identifier:"fbclid", identifierLabel:"fbclid param",
     visits:22400, clicks:18900, conversions:820, convRate:5.0,
-    revenue:"$34,800", revShare:14, avgSession:"2m 12s",
-    bounce:46, status:"active", trend:"+24%", trendUp:true,
+    status:"active", trend:"+24%", trendUp:true,
     topCountry:"NG", topDevice:"Mobile",
     domains:["instagram.com","l.instagram.com"],
   },
@@ -44,8 +41,7 @@ const SOURCES = [
     id:"SRC-004", name:"TikTok",           icon:"T", color:"#ff0050",
     identifier:"ttclid", identifierLabel:"ttclid param",
     visits:28100, clicks:23400, conversions:915, convRate:4.4,
-    revenue:"$31,200", revShare:13, avgSession:"1m 38s",
-    bounce:54, status:"active", trend:"+38%", trendUp:true,
+    status:"active", trend:"+38%", trendUp:true,
     topCountry:"NG", topDevice:"Mobile",
     domains:["tiktok.com","vm.tiktok.com"],
   },
@@ -53,8 +49,7 @@ const SOURCES = [
     id:"SRC-005", name:"X (Twitter)",      icon:"X", color:"#16b0f2",
     identifier:"twclid", identifierLabel:"twclid param",
     visits:10800, clicks:8200, conversions:281, convRate:3.8,
-    revenue:"$9,600", revShare:4, avgSession:"1m 44s",
-    bounce:57, status:"active", trend:"+5%", trendUp:true,
+    status:"active", trend:"+5%", trendUp:true,
     topCountry:"SD", topDevice:"Mobile",
     domains:["t.co","twitter.com","x.com"],
   },
@@ -62,8 +57,7 @@ const SOURCES = [
     id:"SRC-006", name:"Snapchat",         icon:"S", color:"#f7c948",
     identifier:"ScCid", identifierLabel:"ScCid param",
     visits:7900, clicks:6100, conversions:196, convRate:3.5,
-    revenue:"$7,200", revShare:3, avgSession:"1m 02s",
-    bounce:61, status:"active", trend:"+11%", trendUp:true,
+    status:"active", trend:"+11%", trendUp:true,
     topCountry:"SA", topDevice:"Mobile",
     domains:["snapchat.com"],
   },
@@ -209,45 +203,52 @@ function deriveSourcesFromTransactions(rows) {
   const grouped = new Map();
   rows.forEach((tx) => {
     const src = detectSourceFromUrl(tx.lpUrl);
+    const isBlocked = tx.status === "Block";
     const existing = grouped.get(src.id) || {
       ...src,
       visits: 0,
       clicks: 0,
       conversions: 0,
-      revenueAmount: 0,
+      blocked: 0,
+      clear: 0,
       partnerNames: new Set(),
       lpUrls: new Set(),
       transactionIds: [],
       topCountry: "TH",
       topDevice: "Mobile",
-      bounce: 42,
-      avgSession: "2m 10s",
       trend: "0%",
       trendUp: true,
       status: "active",
     };
     existing.visits += 1;
     existing.clicks += 1;
-    existing.conversions += tx.status === "Clear" ? 0 : 1;
-    existing.revenueAmount += tx.status === "Clear" ? 18 : 32;
+    existing.conversions += isBlocked ? 0 : 1;
+    existing.blocked += isBlocked ? 1 : 0;
+    existing.clear += isBlocked ? 0 : 1;
     existing.partnerNames.add(tx.partnerName);
     existing.lpUrls.add(tx.lpUrl);
     existing.transactionIds.push(tx.id);
     grouped.set(src.id, existing);
   });
 
-  const totalRevenue = Array.from(grouped.values()).reduce((sum, src) => sum + src.revenueAmount, 0) || 1;
+  const totalVisits = Array.from(grouped.values()).reduce((sum, src) => sum + src.visits, 0) || 1;
   return Array.from(grouped.values())
-    .map((src) => ({
-      ...src,
-      partnerNames: Array.from(src.partnerNames),
-      lpUrls: Array.from(src.lpUrls),
-      convRate: src.visits ? Number(((src.conversions / src.visits) * 100).toFixed(1)) : 0,
-      revenue: "$" + src.revenueAmount.toLocaleString(),
-      revShare: Math.round((src.revenueAmount / totalRevenue) * 100),
-      trend: Math.max(3, src.clicks * 7) + "%",
-      trendUp: true,
-    }))
+    .map((src) => {
+      const convRate = src.visits ? Number(((src.conversions / src.visits) * 100).toFixed(1)) : 0;
+      const blockRate = src.visits ? Number(((src.blocked / src.visits) * 100).toFixed(1)) : 0;
+      return {
+        ...src,
+        partnerNames: Array.from(src.partnerNames),
+        lpUrls: Array.from(src.lpUrls),
+        convRate,
+        blockRate,
+        clearRate: Number((100 - blockRate).toFixed(1)),
+        trafficShare: Math.round((src.visits / totalVisits) * 100),
+        status: blockRate >= 60 ? "needsattention" : "active",
+        trend: Math.max(3, src.clicks * 7) + "%",
+        trendUp: true,
+      };
+    })
     .sort((a, b) => b.clicks - a.clicks);
 }
 
@@ -268,7 +269,7 @@ function buildRoleTrendData(rows, sourceList) {
       bucketStats[bucketIndex][src.id] = { visits: 0, conversions: 0 };
     }
     bucketStats[bucketIndex][src.id].visits += 1;
-    bucketStats[bucketIndex][src.id].conversions += tx.status === "Clear" ? 0 : 1;
+    bucketStats[bucketIndex][src.id].conversions += tx.status === "Block" ? 0 : 1;
     clickRows[bucketIndex][src.id] += 1;
   });
 
@@ -314,7 +315,12 @@ function avatarSizeClass(size) {
 }
 
 function convRateTitle(conversions, visits) {
-  return `Conv. Rate = Conversions / Visits x 100 (${conversions.toLocaleString()} / ${visits.toLocaleString()} x 100)`;
+  return `Clear Rate = Cleared / Visits x 100 (${conversions.toLocaleString()} / ${visits.toLocaleString()} x 100)`;
+}
+
+function statusLabel(status) {
+  if (status === "needsattention") return "Needs attention";
+  return status;
 }
 
 function SourceAvatar({ src, size }) {
@@ -358,7 +364,7 @@ function BarChartTooltip({ active, payload }) {
       {[
         { label:"Visits",     value: src.visits.toLocaleString(),  tone:"ts-tone-success" },
         { label:"Clicks",     value: src.clicks.toLocaleString(),  tone },
-        { label:"Conv. Rate", value: src.convRate + "%",            tone:"ts-tone-amber", title: convRateTitle(src.conversions, src.visits) },
+        { label:"Clear Rate", value: src.convRate + "%",            tone:"ts-tone-amber", title: convRateTitle(src.conversions, src.visits) },
       ].map((r) => (
         <div key={r.label} className="ts-bar-tt-row">
           <span className="ts-bar-tt-lbl">{r.label}</span>
@@ -390,8 +396,8 @@ function SourceModal({ source, onClose }) {
             {[
               { label:"Visits",      value: source.visits.toLocaleString(),      tone:"ts-tone-success" },
               { label:"Clicks",      value: source.clicks.toLocaleString(),      tone },
-              { label:"Conversions", value: source.conversions.toLocaleString(), tone:"ts-tone-amber" },
-              { label:"Conv. Rate",  value: source.convRate + "%",              tone:"ts-tone-violet", title: convRateTitle(source.conversions, source.visits) },
+              { label:"Cleared",     value: source.conversions.toLocaleString(), tone:"ts-tone-amber" },
+              { label:"Clear Rate",  value: source.convRate + "%",              tone:"ts-tone-violet", title: convRateTitle(source.conversions, source.visits) },
             ].map((k) => (
               <div key={k.label} className="ts-modal-kpi-cell">
                 <div className={`ts-modal-kpi-val ${k.tone}`} title={k.title}>{k.value}</div>
@@ -405,10 +411,10 @@ function SourceModal({ source, onClose }) {
             ["Known Domains",  source.domains && source.domains.join(", ")],
             ["Partners",       source.partnerNames?.join(", ")],
             ["LP URLs",        source.lpUrls?.slice(0, 3).join(", ")],
-            ["Revenue",        source.revenue],
-            ["Revenue Share",  source.revShare + "% of total"],
-            ["Avg. Session",   source.avgSession],
-            ["Bounce Rate",    source.bounce + "%"],
+            ["Blocked",        source.blocked.toLocaleString()],
+            ["Block Rate",     source.blockRate + "%"],
+            ["Clear Rate",     source.clearRate + "%"],
+            ["Traffic Share",  source.trafficShare + "% of total"],
             ["Top Country",    source.topCountry],
             ["Top Device",     source.topDevice],
             ["Status",         source.status],
@@ -417,7 +423,7 @@ function SourceModal({ source, onClose }) {
             <div key={label} className="ts-modal-detail-row">
               <span className="ts-modal-detail-lbl">{label}</span>
               {label === "Status" ? (
-                <span className={`partner-status-badge ts-status-${value}`}>{value}</span>
+                <span className={`partner-status-badge ts-status-${value}`}>{statusLabel(value)}</span>
               ) : label === "Trend" ? (
                 <TrendBadge trend={value} trendUp={source.trendUp} />
               ) : (label === "Identified By" || label === "Identifier") ? (
@@ -467,8 +473,8 @@ export default function Trafficsources({ role = "admin" }) {
     : ALL_PARTNERS.find((p) => p.id === Number(partnerFilter))?.name || sessionPartner.name;
   const totalVisits      = sources.reduce((a, r) => a + r.visits, 0);
   const totalClicks      = sources.reduce((a, r) => a + r.clicks, 0);
-  const totalConversions = sources.reduce((a, r) => a + r.conversions, 0);
-  const avgConvRate      = sources.length
+  const totalCleared     = sources.reduce((a, r) => a + r.conversions, 0);
+  const avgClearRate     = sources.length
     ? (sources.reduce((a, r) => a + r.convRate, 0) / sources.length).toFixed(1)
     : "0.0";
   const maxClicks        = Math.max(...sources.map((s) => s.clicks), 1);
@@ -488,8 +494,8 @@ export default function Trafficsources({ role = "admin" }) {
   const KPI = [
     { label:"Total Visits",    value: totalVisits.toLocaleString(),      tone:"ts-tone-success", sub:"Page landings" },
     { label:"Total Clicks",    value: totalClicks.toLocaleString(),      tone:"ts-tone-google", sub:"Subscribe taps" },
-    { label:"Conversions",     value: totalConversions.toLocaleString(), tone:"ts-tone-amber", sub:"Block API called" },
-    { label:"Avg. Conv. Rate", value: avgConvRate + "%",                 tone:"ts-tone-violet", sub:"Across all sources" },
+    { label:"Cleared",         value: totalCleared.toLocaleString(),      tone:"ts-tone-amber", sub:"Allowed by Shield" },
+    { label:"Avg. Clear Rate", value: avgClearRate + "%",                tone:"ts-tone-violet", sub:"Across all sources" },
   ];
 
   const TABS = [
@@ -588,17 +594,17 @@ export default function Trafficsources({ role = "admin" }) {
               </div>
 
               <div className="ts-chart-card">
-                <div className="ts-chart-title">Revenue Share</div>
+                <div className="ts-chart-title">Traffic Share</div>
                 <div className="ts-rev-share-wrap">
                   <PieChart width={130} height={130}>
                     <Pie data={sources} cx="50%" cy="50%" innerRadius={36} outerRadius={60}
-                      dataKey="revShare" paddingAngle={2}>
+                      dataKey="trafficShare" paddingAngle={2}>
                       {sources.map((s) => <Cell key={s.id} fill={s.color} />)}
                     </Pie>
                     <Tooltip
                       contentStyle={{ fontSize:11, borderRadius:8, border:"1px solid #e8ecf3", background:"#fff", color:"#0f172a", boxShadow:"0 4px 16px rgba(0,0,0,0.10)" }}
                       wrapperStyle={{ zIndex:50 }}
-                      formatter={(v, _n, props) => [v + "%", props.payload.name]}
+                      formatter={(v, _n, props) => [v + "% of visits", props.payload.name]}
                     />
                   </PieChart>
                   <div className="ts-rev-legend">
@@ -606,7 +612,7 @@ export default function Trafficsources({ role = "admin" }) {
                       <div key={s.id} className="ts-rev-legend-item">
                         <span className={`ts-rev-legend-dot ${sourceTone(s)}`} />
                         <span className="ts-rev-legend-name">{s.name.split(" ")[0]}</span>
-                        <span className="ts-rev-legend-pct">{s.revShare}%</span>
+                        <span className="ts-rev-legend-pct">{s.trafficShare}%</span>
                       </div>
                     ))}
                   </div>
@@ -632,16 +638,16 @@ export default function Trafficsources({ role = "admin" }) {
                         </div>
                       </div>
                       <span className={`partner-status-badge ts-status-${src.status}`}>
-                        {src.status}
+                        {statusLabel(src.status)}
                       </span>
                     </div>
 
                     <div className="ts-src-kpi-grid">
                       {[
                         { label:"Clicks",    value: src.clicks.toLocaleString() },
-                        { label:"Conv. %",   value: src.convRate + "%", title: convRateTitle(src.conversions, src.visits) },
-                        { label:"Revenue",   value: src.revenue },
-                        { label:"Bounce",    value: src.bounce + "%" },
+                        { label:"Clear %",   value: src.convRate + "%", title: convRateTitle(src.conversions, src.visits) },
+                        { label:"Blocked",   value: src.blocked.toLocaleString() },
+                        { label:"Block %",   value: src.blockRate + "%" },
                       ].map((k) => (
                         <div key={k.label} className="ts-src-kpi-cell">
                           <div className="ts-src-kpi-val" title={k.title}>{k.value}</div>
@@ -651,11 +657,11 @@ export default function Trafficsources({ role = "admin" }) {
                     </div>
 
                     <div className="ts-revshare-row">
-                      <span className="ts-revshare-lbl">Revenue share</span>
-                      <span className={`ts-src-kpi-val ts-revshare-val-color ${tone}`}>{src.revShare}%</span>
+                      <span className="ts-revshare-lbl">Traffic share</span>
+                      <span className={`ts-src-kpi-val ts-revshare-val-color ${tone}`}>{src.trafficShare}%</span>
                     </div>
                     <div className="ts-revshare-track">
-                      <div className={`ts-revshare-fill ${tone} ${widthClass(src.revShare)}`} />
+                      <div className={`ts-revshare-fill ${tone} ${widthClass(src.trafficShare)}`} />
                     </div>
 
                     <div className={`ts-src-trend ${src.trendUp ? "ts-src-trend--up" : "ts-src-trend--dn"}`}>
@@ -709,8 +715,8 @@ export default function Trafficsources({ role = "admin" }) {
             </div>
 
             <div className="ts-trends-conv-card">
-              <div className="ts-chart-title">Conversion Rate Trend</div>
-              <div className="ts-trends-conv-sub">% of visits that triggered the Block API (subscribe click)</div>
+              <div className="ts-chart-title">Clear Rate Trend</div>
+              <div className="ts-trends-conv-sub">% of source visits allowed by Shield</div>
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={convData} margin={{ top:4, right:8, bottom:0, left:-10 }}>
                   <defs>
@@ -798,9 +804,9 @@ export default function Trafficsources({ role = "admin" }) {
                       "Identifier",
                       "Visits",
                       "Clicks",
-                      "Conv. Rate",
-                      "Revenue",
-                      "Rev. Share",
+                      "Clear Rate",
+                      "Blocked",
+                      "Traffic Share",
                       "Trend",
                       "",
                     ].map((h) => (
@@ -845,13 +851,13 @@ export default function Trafficsources({ role = "admin" }) {
                             <span className="ts-tbl-conv-val" title={convRateTitle(src.conversions, src.visits)}>{src.convRate}%</span>
                           </div>
                         </td>
-                        <td className="ts-tbl-revenue">{src.revenue}</td>
+                        <td className="ts-tbl-revenue">{src.blocked.toLocaleString()}</td>
                         <td className="p-sm">
                           <div className="ts-tbl-revshare-row">
                             <div className="ts-tbl-revshare-track">
-                              <div className={`ts-tbl-revshare-fill ${tone} ${widthClass(src.revShare)}`} />
+                              <div className={`ts-tbl-revshare-fill ${tone} ${widthClass(src.trafficShare)}`} />
                             </div>
-                            <span className="ts-tbl-revshare-val">{src.revShare}%</span>
+                            <span className="ts-tbl-revshare-val">{src.trafficShare}%</span>
                           </div>
                         </td>
                         <td className="p-sm"><TrendBadge trend={src.trend} trendUp={src.trendUp} /></td>

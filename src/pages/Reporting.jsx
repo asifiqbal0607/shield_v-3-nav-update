@@ -161,6 +161,15 @@ function getReportingAccount(role) {
     };
   }
 
+  if (role === "client") {
+    const client = userRows.find((u) => u.id === "USR-051" && u.role === "Clients");
+    return {
+      id: client?.id || "client-true-digital",
+      name: client?.name || "True Digital",
+      ownerRole: "client",
+    };
+  }
+
   return {
     id: "admin",
     name: "Shield Admin",
