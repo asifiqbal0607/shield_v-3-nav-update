@@ -90,11 +90,61 @@ const BOTTOM_GROUP = {
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
+function groupsForSidebarRole(role) {
+  if (!["partner", "client", "c-admin"].includes(role)) return TOP_GROUPS;
+
+  return [
+    {
+      key: "dashboard",
+      Icon: LayoutDashboard,
+      label: "Dashboard",
+      roles: ["partner", "client", "c-admin"],
+      items: [
+        { key: "overview", label: "Overview" },
+      ],
+    },
+    {
+      key: "operations",
+      Icon: Settings,
+      label: "Operations",
+      roles: ["partner", "client", "c-admin"],
+      items: [
+        { key: "services", label: "Manage Services" },
+        { key: "reporting", label: "Reporting" },
+        { key: "traffic-sources", label: "Traffic Sources" },
+      ],
+    },
+    {
+      key: "analytics",
+      Icon: BarChart3,
+      label: "Analytics",
+      roles: ["partner", "client", "c-admin"],
+      items: [
+        { key: "block", label: "Blocking" },
+        { key: "device", label: "Device Networks" },
+        { key: "geo", label: "Geo" },
+        { key: "apks", label: "APKs" },
+      ],
+    },
+    {
+      key: "resources",
+      Icon: BookOpen,
+      label: "Resources",
+      roles: ["partner", "client", "c-admin"],
+      items: [
+        { key: "docs", label: "Documentation" },
+        { key: "sandbox", label: "Sandbox" },
+      ],
+    },
+  ];
+}
+
 export default function Sidebar({ role, page, setPage }) {
   const [openKey, setOpenKey] = useState(null);
   const [pinned, setPinned] = useState(false);
 
-  const topGroups  = TOP_GROUPS
+  const roleGroups = groupsForSidebarRole(role);
+  const topGroups  = roleGroups
     .filter((g) => g.roles.includes(role))
     .map((g) => ({
       ...g,
@@ -144,8 +194,9 @@ export default function Sidebar({ role, page, setPage }) {
         {/* ── 52px icon strip ── */}
         <div className="sb-strip">
           <div className="sb-strip-top">
-            {topGroups.map(({ key, Icon, label }) => {
-              const active = isGroupActive(TOP_GROUPS.find(g => g.key === key)) || openKey === key;
+            {topGroups.map((group) => {
+              const { key, Icon, label } = group;
+              const active = isGroupActive(group) || openKey === key;
               return (
                 <button
                   key={key}

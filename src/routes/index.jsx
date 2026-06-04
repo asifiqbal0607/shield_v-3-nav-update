@@ -11,6 +11,7 @@ import PageGeo from "../pages/Geo";
 import PageOnboardingServices from "../components/modals/OnboardingServices";
 import PageOnboardingUsers from "../components/modals/OnboardingUsers";
 import PageStub from "../pages/Stub";
+import PageSandbox from "../pages/Sandbox";
 import PagePasswordGenerator from "../pages/PasswordGenerator";
 import PagePartners from "../pages/Partners";
 import Trafficsources from "../pages/TrafficSources";
@@ -90,7 +91,7 @@ export default function PageRouter({
     "fraud-codes": <PageFraudCodes role={clientFacingRole} />,
     audit: <PageStub title="Audit Log" icon="📋" />,
     docs: <PageStub title="Documentation" icon="📖" />,
-    sandbox: <PageStub title="Sandbox Environment" icon="🧪" />,
+    sandbox: <PageSandbox />,
     "password-generator": <PagePasswordGenerator />,
     "ip-manager": <PageIPManager role={clientFacingRole} />,
     "traffic-sources": <Trafficsources role={clientFacingRole} />,
