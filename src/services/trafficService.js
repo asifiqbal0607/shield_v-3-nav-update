@@ -34,23 +34,31 @@ export function getDayStats(entity, dayOffset) {
 export function buildServiceData(days, servicePool) {
   return servicePool
     .map((svc, idx) => {
-      let total = 0, blocked = 0;
+      let total = 0, blocked = 0, suspect = 0;
       for (let d = 0; d < days; d++) {
         const s = getDayStats(svc, d);
+        const daySuspect = Math.round(s.clean * (0.10 + seededRand(svc.id * 23 + d + 71) * 0.14));
         total   += s.total;
         blocked += s.blocked;
+        suspect += daySuspect;
       }
-      const clean     = total - blocked;
+      const clean     = total - blocked - suspect;
       const blockRate = total > 0 ? blocked / total : 0;
+      const suspectRate = total > 0 ? suspect / total : 0;
+      const cleanRate = total > 0 ? clean / total : 0;
 
-      let prevTotal = 0, prevBlocked = 0;
+      let prevTotal = 0, prevBlocked = 0, prevSuspect = 0;
       for (let d = 0; d < days; d++) {
         const s  = getDayStats(svc, d + days);
+        const daySuspect = Math.round(s.clean * (0.10 + seededRand(svc.id * 23 + d + days + 71) * 0.14));
         prevTotal   += s.total;
         prevBlocked += s.blocked;
+        prevSuspect += daySuspect;
       }
-      const prevClean     = prevTotal - prevBlocked;
+      const prevClean     = prevTotal - prevBlocked - prevSuspect;
       const prevBlockRate = prevTotal > 0 ? prevBlocked / prevTotal : 0;
+      const prevSuspectRate = prevTotal > 0 ? prevSuspect / prevTotal : 0;
+      const prevCleanRate = prevTotal > 0 ? prevClean / prevTotal : 0;
 
       const trafficDelta = prevTotal   > 0 ? ((total   - prevTotal)   / prevTotal)   * 100 : 0;
       const blockDelta   = prevBlocked > 0 ? ((blocked - prevBlocked) / prevBlocked) * 100 : 0;
@@ -59,8 +67,8 @@ export function buildServiceData(days, servicePool) {
         id: svc.id,
         name: svc.name,
         colorIdx: idx,
-        traffic: total, blocked, clean, blockRate,
-        prevTotal, prevBlocked, prevClean, prevBlockRate,
+        traffic: total, blocked, suspect, clean, blockRate, suspectRate, cleanRate,
+        prevTotal, prevBlocked, prevSuspect, prevClean, prevBlockRate, prevSuspectRate, prevCleanRate,
         trafficDelta, blockDelta,
       };
     })
@@ -72,23 +80,31 @@ export function buildServiceData(days, servicePool) {
 export function buildPartnerData(days, partnerPool) {
   return partnerPool
     .map((partner, idx) => {
-      let total = 0, blocked = 0;
+      let total = 0, blocked = 0, suspect = 0;
       for (let d = 0; d < days; d++) {
         const s = getDayStats(partner, d);
+        const daySuspect = Math.round(s.clean * (0.10 + seededRand(partner.id * 23 + d + 71) * 0.14));
         total   += s.total;
         blocked += s.blocked;
+        suspect += daySuspect;
       }
-      const clean     = total - blocked;
+      const clean     = total - blocked - suspect;
       const blockRate = total > 0 ? blocked / total : 0;
+      const suspectRate = total > 0 ? suspect / total : 0;
+      const cleanRate = total > 0 ? clean / total : 0;
 
-      let prevTotal = 0, prevBlocked = 0;
+      let prevTotal = 0, prevBlocked = 0, prevSuspect = 0;
       for (let d = 0; d < days; d++) {
         const s = getDayStats(partner, d + days);
+        const daySuspect = Math.round(s.clean * (0.10 + seededRand(partner.id * 23 + d + days + 71) * 0.14));
         prevTotal   += s.total;
         prevBlocked += s.blocked;
+        prevSuspect += daySuspect;
       }
-      const prevClean     = prevTotal - prevBlocked;
+      const prevClean     = prevTotal - prevBlocked - prevSuspect;
       const prevBlockRate = prevTotal > 0 ? prevBlocked / prevTotal : 0;
+      const prevSuspectRate = prevTotal > 0 ? prevSuspect / prevTotal : 0;
+      const prevCleanRate = prevTotal > 0 ? prevClean / prevTotal : 0;
 
       const trafficDelta = prevTotal   > 0 ? ((total   - prevTotal)   / prevTotal)   * 100 : 0;
       const blockDelta   = prevBlocked > 0 ? ((blocked - prevBlocked) / prevBlocked) * 100 : 0;
@@ -98,8 +114,8 @@ export function buildPartnerData(days, partnerPool) {
         name: partner.name,
         services: partner.services,
         colorIdx: idx,
-        traffic: total, blocked, clean, blockRate,
-        prevTotal, prevBlocked, prevClean, prevBlockRate,
+        traffic: total, blocked, suspect, clean, blockRate, suspectRate, cleanRate,
+        prevTotal, prevBlocked, prevSuspect, prevClean, prevBlockRate, prevSuspectRate, prevCleanRate,
         trafficDelta, blockDelta,
       };
     })

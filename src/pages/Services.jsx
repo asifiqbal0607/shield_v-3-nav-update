@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 
 import { createPortal } from "react-dom";
 import {
@@ -14,6 +14,7 @@ import {
 } from "recharts";
 
 import { Card, SectionTitle, Badge } from "../components/ui";
+import { ChartExportButton } from "../components/charts";
 import {
   BLUE,
   GREEN,
@@ -47,6 +48,133 @@ const API_CALL_DATA = [
 ];
 
 const BAR_COLORS = [BLUE, GREEN, VIOLET, ROSE, AMBER, "#06b6d4", "#f97316"];
+const PARTNER_API_BAR_COLORS = [BLUE, ROSE];
+const PARTNER_DEMO_CLIENT = "True Digital";
+const GEO_POOL = [
+  ["Saudi Arabia", "57.7"],
+  ["Ireland", "29.0"],
+  ["United States", "12.2"],
+  ["Germany", "0.7"],
+  ["France", "0.3"],
+];
+
+function statSeed(input) {
+  return String(input)
+    .split("")
+    .reduce((sum, char, idx) => sum + char.charCodeAt(0) * (idx + 7), 0);
+}
+
+function fmtCount(value) {
+  return new Intl.NumberFormat("en-US").format(value);
+}
+
+function downloadStatsCsv(rows, columns, filename) {
+  const escape = (value) => {
+    const text = String(value ?? "");
+    return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+  };
+  const csv = [
+    columns.map((col) => escape(col.label)).join(","),
+    ...rows.map((row) =>
+      columns.map((col) => escape(col.value(row))).join(","),
+    ),
+  ].join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function filePart(value) {
+  return String(value || "services")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+function getClientCountry(clientName) {
+  const client = userRows.find((u) => u.role === "Clients" && u.name === clientName);
+  const regionMap = {
+    TH: "Thailand",
+    ZA: "South Africa",
+    NG: "Nigeria",
+    US: "United States",
+    AE: "United Arab Emirates",
+    CN: "China",
+    GH: "Ghana",
+  };
+  return regionMap[client?.region] || client?.region || "Saudi Arabia";
+}
+
+function splitServiceName(name) {
+  const [left, right] = String(name || "").split("|").map((part) => part.trim());
+  return {
+    service: right || left || "--",
+    brand: right ? left : "--",
+  };
+}
+
+function buildTrafficStatRow(row, idx) {
+  const seed = statSeed(`${row.id}-${row.name}-${row.client}`);
+  const total = 2400 + ((seed * 37) % 72000);
+  const block = Math.max(4, Math.round(total * (0.006 + ((seed % 13) / 1000))));
+  const suspect = Math.max(1, Math.round(total * (0.001 + ((seed % 7) / 3000))));
+  const clear = Math.max(0, total - block - suspect);
+  const apk = Math.round(total * (0.04 + ((seed % 19) / 100)));
+  const browsing = total - apk;
+  const google = Math.round(total * (0.18 + ((seed % 11) / 100)));
+  const nonGoogle = total - google;
+  const geoShift = idx % GEO_POOL.length;
+  const geos = [...GEO_POOL.slice(geoShift), ...GEO_POOL.slice(0, geoShift)];
+  const names = splitServiceName(row.name);
+
+  return {
+    ...row,
+    statService: names.service,
+    statBrand: row.vsBrand && row.vsBrand !== "--" ? row.vsBrand : names.brand,
+    country: getClientCountry(row.client),
+    clear,
+    suspect,
+    block,
+    apk,
+    browsing,
+    google,
+    nonGoogle,
+    total,
+    topGeo: geos[0],
+    topGeos: geos,
+  };
+}
+
+function getShortCode(row) {
+  const fromName = String(row.statService || row.name || "").match(/\b(\d{4})\b/);
+  const fromId = String(row.serviceId || "").match(/\d{4}/);
+  return fromName?.[1] || fromId?.[0] || String(2000 + (statSeed(row.id) % 900));
+}
+
+function hasBlockApiCall(row) {
+  return Boolean(row?.shieldMode && row.shieldMode !== "--");
+}
+
+function buildPartnerApiCallData(rows) {
+  return rows.reduce(
+    (acc, row) => {
+      const key = hasBlockApiCall(row) ? "Block API" : "JS API";
+      return acc.map((item) =>
+        item.name === key ? { ...item, calls: item.calls + 1 } : item,
+      );
+    },
+    [
+      { name: "JS API", calls: 0 },
+      { name: "Block API", calls: 0 },
+    ],
+  );
+}
 
 function getDemoCAdminAccount() {
   return userRows.find((u) => u.role === "C-Admins" && u.serviceOnboardingEnabled) || null;
@@ -3424,6 +3552,330 @@ function PartnerActions({ row, openModal }) {
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 // ── Services Export Modal ─────────────────────────────────────────────────────
+function GeoSplit({ geos }) {
+  return (
+    <div className="svc-traffic-geo">
+      <div className="svc-traffic-pie" />
+      <div className="svc-traffic-geo-list">
+        {geos.map(([name, pct]) => (
+          <div key={name} className="svc-traffic-geo-row">
+            <span>{name}</span>
+            <strong>{pct}%</strong>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function TrafficStatsPanel({ rows, role }) {
+  const [partnerFilter, setPartnerFilter] = useState("all");
+  const isPartnerStats = role === "partner" || role === "client";
+  const isCAdminStats = role === "c-admin";
+  const canSelectPartner = role === "admin";
+  const partnerOptions = useMemo(
+    () => [...new Set(rows.map((row) => row.client).filter(Boolean))].sort(),
+    [rows],
+  );
+  const filteredRows = useMemo(
+    () =>
+      partnerFilter === "all"
+        ? rows
+        : rows.filter((row) => row.client === partnerFilter),
+    [rows, partnerFilter],
+  );
+  const statsRows = useMemo(
+    () => filteredRows.map((row, idx) => buildTrafficStatRow(row, idx)),
+    [filteredRows],
+  );
+  const totals = useMemo(
+    () =>
+      statsRows.reduce(
+        (acc, row) => ({
+          clear: acc.clear + row.clear,
+          suspect: acc.suspect + row.suspect,
+          block: acc.block + row.block,
+          total: acc.total + row.total,
+        }),
+        { clear: 0, suspect: 0, block: 0, total: 0 },
+      ),
+    [statsRows],
+  );
+  const groupedRows = useMemo(
+    () =>
+      partnerOptions.map((partner) => {
+        const items = statsRows.filter((row) => row.client === partner);
+        const total = items.reduce((sum, row) => sum + row.total, 0);
+        return { partner, rows: items, total };
+      }).filter((group) => group.rows.length > 0),
+    [partnerOptions, statsRows],
+  );
+  const adminColumns = [
+    { label: "Service", value: (row) => row.statService },
+    { label: "Brand", value: (row) => row.statBrand },
+    { label: "Client", value: (row) => row.client },
+    { label: "Country", value: (row) => row.country },
+    { label: "Clear", value: (row) => row.clear },
+    { label: "Suspect", value: (row) => row.suspect },
+    { label: "Block", value: (row) => row.block },
+    { label: "APK", value: (row) => row.apk },
+    { label: "Browsing", value: (row) => row.browsing },
+    { label: "Google", value: (row) => row.google },
+    { label: "Non Google", value: (row) => row.nonGoogle },
+    { label: "Total", value: (row) => row.total },
+    { label: "Top Geo", value: (row) => row.topGeo[0] },
+    { label: "Top 5 Geos", value: (row) => row.topGeos.map(([name, pct]) => `${name} ${pct}%`).join(" | ") },
+  ];
+  const partnerColumns = [
+    { label: "Service", value: (row) => row.statService },
+    { label: "Clear", value: (row) => row.clear },
+    { label: "Suspect", value: (row) => row.suspect },
+    { label: "Block", value: (row) => row.block },
+    { label: "Total", value: (row) => row.total },
+  ];
+  const cAdminColumns = [
+    { label: "Service", value: (row) => row.statService },
+    { label: "Short Code", value: (row) => getShortCode(row) },
+    { label: "Clear", value: (row) => row.clear },
+    { label: "Clear %", value: (row) => `${Math.round((row.clear / row.total) * 100)}%` },
+    { label: "Suspect", value: (row) => row.suspect },
+    { label: "Suspect %", value: (row) => `${Math.round((row.suspect / row.total) * 100)}%` },
+    { label: "Block", value: (row) => row.block },
+    { label: "Block %", value: (row) => `${Math.round((row.block / row.total) * 100)}%` },
+    { label: "Total", value: (row) => row.total },
+  ];
+  const exportCurrent = () => {
+    const name = partnerFilter === "all" ? "all-partners" : partnerFilter;
+    downloadStatsCsv(statsRows, adminColumns, `services-stats-${filePart(name)}.csv`);
+  };
+  const exportGroup = (group) => {
+    downloadStatsCsv(group.rows, cAdminColumns, `services-stats-${filePart(group.partner)}.csv`);
+  };
+  const exportPartner = () => {
+    const name = statsRows[0]?.client || "partner";
+    downloadStatsCsv(statsRows, partnerColumns, `services-stats-${filePart(name)}.csv`);
+  };
+
+  return (
+    <Card className={`svc-traffic-card${isPartnerStats ? " svc-traffic-card--partner" : ""}${isCAdminStats ? " svc-traffic-card--cadmin" : ""}`}>
+      <div className="svc-traffic-head">
+        <div>
+          <SectionTitle>{isPartnerStats ? (statsRows[0]?.client || "Services Stats") : "Services Stats"}</SectionTitle>
+          <div className="svc-traffic-sub">
+            {isPartnerStats
+              ? "Your services"
+              : isCAdminStats
+                ? "Assigned partner services"
+                : "Per partner services"}
+          </div>
+        </div>
+        <div className="svc-traffic-controls">
+          {canSelectPartner && (
+            <select
+              className="svc-traffic-select"
+              value={partnerFilter}
+              onChange={(e) => setPartnerFilter(e.target.value)}
+            >
+              <option value="all">
+                {role === "admin" ? "All partners" : "All assigned partners"}
+              </option>
+              {partnerOptions.map((partner) => (
+                <option key={partner} value={partner}>
+                  {partner}
+                </option>
+              ))}
+            </select>
+          )}
+          {!isCAdminStats && (
+            <button
+              type="button"
+              className="svc-traffic-export"
+              disabled={statsRows.length === 0}
+              onClick={isPartnerStats ? exportPartner : exportCurrent}
+            >
+              Export
+            </button>
+          )}
+          <div className="svc-traffic-total">
+            <span>Total</span>
+            <strong>{fmtCount(totals.total)}</strong>
+          </div>
+        </div>
+      </div>
+
+      {!isPartnerStats && !isCAdminStats && <div className="svc-traffic-summary">
+        <div className="svc-traffic-summary-item clear">
+          <span>Clear</span>
+          <strong>{fmtCount(totals.clear)}</strong>
+        </div>
+        <div className="svc-traffic-summary-item suspect">
+          <span>Suspect</span>
+          <strong>{fmtCount(totals.suspect)}</strong>
+        </div>
+        <div className="svc-traffic-summary-item block">
+          <span>Block</span>
+          <strong>{fmtCount(totals.block)}</strong>
+        </div>
+      </div>}
+
+      {isPartnerStats ? (
+        <div className="svc-traffic-table-wrap">
+          <table className="svc-traffic-table svc-traffic-table--partner">
+            <thead>
+              <tr>
+                <th>Service</th>
+                <th>Clear</th>
+                <th>Suspect</th>
+                <th>Block</th>
+                <th>Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {statsRows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <button type="button" className="svc-traffic-link" title={row.statService}>
+                      {row.statService}
+                    </button>
+                  </td>
+                  <td>{fmtCount(row.clear)}</td>
+                  <td>{fmtCount(row.suspect)}</td>
+                  <td>{fmtCount(row.block)}</td>
+                  <td>{fmtCount(row.total)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : isCAdminStats ? (
+        <div className="svc-traffic-groups">
+          {groupedRows.map((group) => (
+            <div key={group.partner} className="svc-traffic-group">
+              <div className="svc-traffic-group-head">
+                <span>{group.partner}</span>
+                <div>
+                  <strong>{fmtCount(group.total)}</strong>
+                  <button
+                    type="button"
+                    className="svc-traffic-icon-export"
+                    title={`Export ${group.partner} stats`}
+                    onClick={() => exportGroup(group)}
+                  >
+                    Export
+                  </button>
+                </div>
+              </div>
+              <div className="svc-traffic-table-wrap">
+                <table className="svc-traffic-table svc-traffic-table--cadmin">
+                  <thead>
+                    <tr>
+                      <th>Service</th>
+                      <th>Short Code</th>
+                      <th>Clear</th>
+                      <th>Clear %</th>
+                      <th>Suspect</th>
+                      <th>Suspect %</th>
+                      <th>Block</th>
+                      <th>Block %</th>
+                      <th>Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {group.rows.map((row) => (
+                      <tr key={row.id}>
+                        <td>
+                          <button type="button" className="svc-traffic-link" title={row.statService}>
+                            {row.statService}
+                          </button>
+                        </td>
+                        <td>{getShortCode(row)}</td>
+                        <td>{fmtCount(row.clear)}</td>
+                        <td>{Math.round((row.clear / row.total) * 100)}%</td>
+                        <td>{fmtCount(row.suspect)}</td>
+                        <td>{Math.round((row.suspect / row.total) * 100)}%</td>
+                        <td>{fmtCount(row.block)}</td>
+                        <td>{Math.round((row.block / row.total) * 100)}%</td>
+                        <td>{fmtCount(row.total)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+
+      <div className="svc-traffic-table-wrap">
+        <table className="svc-traffic-table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Brand</th>
+              <th>Client</th>
+              <th>Country</th>
+              <th>Clear</th>
+              <th>Suspect</th>
+              <th>Block</th>
+              <th>APK - Browsing</th>
+              <th>Google - Non Google</th>
+              <th>Total</th>
+              <th>Top 1 Geo</th>
+              <th>Top 5 Geos</th>
+            </tr>
+          </thead>
+          <tbody>
+            {statsRows.length === 0 ? (
+              <tr>
+                <td colSpan={12} className="dt-empty">
+                  No services available for this scope.
+                </td>
+              </tr>
+            ) : (
+              statsRows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <button type="button" className="svc-traffic-link" title={row.statService}>
+                      {row.statService}
+                    </button>
+                  </td>
+                  <td>
+                    <span className="svc-traffic-brand" title={row.statBrand}>
+                      {row.statBrand}
+                    </span>
+                  </td>
+                  <td>{row.client || "--"}</td>
+                  <td>{row.country}</td>
+                  <td className="svc-traffic-num clear">{fmtCount(row.clear)}</td>
+                  <td className="svc-traffic-num suspect">{fmtCount(row.suspect)}</td>
+                  <td className="svc-traffic-num block">{fmtCount(row.block)}</td>
+                  <td className="svc-traffic-num">
+                    {fmtCount(row.apk)} - {fmtCount(row.browsing)}
+                  </td>
+                  <td className="svc-traffic-num">
+                    {fmtCount(row.google)} - {fmtCount(row.nonGoogle)}
+                  </td>
+                  <td className="svc-traffic-num total">{fmtCount(row.total)}</td>
+                  <td>
+                    <div className="svc-traffic-topgeo">
+                      <strong>{row.topGeo[0]}</strong>
+                      <span>{fmtCount(Math.round((row.total * Number(row.topGeo[1])) / 100))}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <GeoSplit geos={row.topGeos} />
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+      )}
+    </Card>
+  );
+}
+
 const ALL_EXPORT_COLUMNS = [
   { key: "sr", label: "Sr.", partner: true },
   { key: "name", label: "Service Name", partner: true },
@@ -3880,6 +4332,7 @@ function SvcExportModal({
 }
 
 export default function PageServices({ role = "admin", setPage }) {
+  const [viewMode, setViewMode] = useState("registry");
   const [tab, setTab] = useState("active");
   const [perPageSvc, setPerPageSvc] = useState(10);
   const [openRow, setOpenRow] = useState(null);
@@ -3939,8 +4392,8 @@ export default function PageServices({ role = "admin", setPage }) {
         return cAdminClientNames.includes(service.client) &&
           isServiceAllowedForCAdmin(service, cAdminAccount, client);
       })
-    : isClient
-      ? services.filter((service) => service.client === "True Digital")
+    : isPartner
+      ? services.filter((service) => service.client === PARTNER_DEMO_CLIENT)
     : services;
   const selectedCAdminClient =
     cAdminClients.find((client) => client.id === cAdminClientId) || null;
@@ -3954,6 +4407,11 @@ export default function PageServices({ role = "admin", setPage }) {
   const displayed = tab === "active" ? activeServices : inactiveServices;
   const visibleServices = displayed.slice(0, perPageSvc);
   const defaultCAdminOnboardingClient = selectedCAdminClient || cAdminClients[0] || null;
+  const apiCallChartData = isPartner
+    ? buildPartnerApiCallData(filteredServices)
+    : API_CALL_DATA;
+  const apiCallChartColors = isPartner ? PARTNER_API_BAR_COLORS : BAR_COLORS;
+  const apiCallChartTitle = isPartner ? "API Calls by Type" : "API Calls by Service";
 
   const SUMMARY_STATS = [
     { label: "Total Services",  value: filteredServices.length, color: "#2563eb", filter: "all"      },
@@ -4137,6 +4595,26 @@ export default function PageServices({ role = "admin", setPage }) {
           </div>
         </div>
       )}
+      <div className="svc-view-switch">
+        {[
+          { key: "registry", label: "Service Registry" },
+          { key: "traffic", label: "Services Stats" },
+        ].map((item) => (
+          <button
+            key={item.key}
+            type="button"
+            className={`svc-view-switch-btn${viewMode === item.key ? " active" : ""}`}
+            onClick={() => setViewMode(item.key)}
+          >
+            {item.label}
+          </button>
+        ))}
+      </div>
+
+      {viewMode === "traffic" ? (
+        <TrafficStatsPanel rows={filteredServices} role={role} />
+      ) : (
+        <>
       {/* Summary stats */}
       <div className="g-stats3 mb-section">
         {SUMMARY_STATS.map(({ label, value, color, filter }) => (
@@ -4194,7 +4672,10 @@ export default function PageServices({ role = "admin", setPage }) {
       {/* Charts */}
       <div className="g-split2 mb-section">
         <Card>
-          <SectionTitle>Uptime Trend (14 days)</SectionTitle>
+          <div className="toolbar">
+            <SectionTitle>Uptime Trend (14 days)</SectionTitle>
+            <ChartExportButton title="Uptime Trend 14 days" data={repTrend} />
+          </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={repTrend}>
               <XAxis dataKey="d" />
@@ -4210,15 +4691,18 @@ export default function PageServices({ role = "admin", setPage }) {
           </ResponsiveContainer>
         </Card>
         <Card>
-          <SectionTitle>API Calls by Service</SectionTitle>
+          <div className="toolbar">
+            <SectionTitle>{apiCallChartTitle}</SectionTitle>
+            <ChartExportButton title={apiCallChartTitle} data={apiCallChartData} />
+          </div>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={API_CALL_DATA}>
+            <BarChart data={apiCallChartData}>
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip />
               <Bar dataKey="calls" radius={[4, 4, 0, 0]}>
-                {API_CALL_DATA.map((_, i) => (
-                  <Cell key={i} fill={BAR_COLORS[i % BAR_COLORS.length]} />
+                {apiCallChartData.map((_, i) => (
+                  <Cell key={i} fill={apiCallChartColors[i % apiCallChartColors.length]} />
                 ))}
               </Bar>
             </BarChart>
@@ -4369,6 +4853,8 @@ export default function PageServices({ role = "admin", setPage }) {
           </table>
         </div>
       </Card>
+        </>
+      )}
     </div>
   );
 }

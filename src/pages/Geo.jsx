@@ -9,6 +9,7 @@ import {
   Cell,
 } from "recharts";
 import { Card, SectionTitle } from "../components/ui";
+import { ChartExportButton } from "../components/charts";
 import { TransactionsModal } from "../components/modals";
 import {
   BLUE,
@@ -311,6 +312,17 @@ export default function PageGeo() {
       <Card className="mb-18">
         <div className="toolbar">
           <SectionTitle>Geo Spread</SectionTitle>
+          <ChartExportButton
+            title="Geo Spread"
+            data={geoSpreadData}
+            fields={[
+              { key: "country", label: "Country" },
+              { key: "code", label: "Code" },
+              { key: "visits", label: "Visits" },
+              { key: "clicks", label: "Clicks" },
+              { key: "pct", label: "Share %" },
+            ]}
+          />
           <button className="geo-collapse-btn">≡</button>
         </div>
         <GeoMap
@@ -322,7 +334,19 @@ export default function PageGeo() {
       {/* Bar chart + table */}
       <div className="g-halves">
         <Card>
-          <SectionTitle>Visits by Country</SectionTitle>
+          <div className="toolbar">
+            <SectionTitle>Visits by Country</SectionTitle>
+            <ChartExportButton
+              title="Visits by Country"
+              data={sortedData}
+              fields={[
+                { key: "country", label: "Country" },
+                { key: "visits", label: "Visits" },
+                { key: "clicks", label: "Clicks" },
+                { key: "pct", label: "Share %" },
+              ]}
+            />
+          </div>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart
               data={sortedData}

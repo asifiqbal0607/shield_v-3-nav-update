@@ -7,7 +7,7 @@ import {
 
 import { Card } from "../components/ui";
 import { TransactionsModal } from "../components/modals";
-import { BlockRadarChart } from "../components/charts";
+import { BlockRadarChart, ChartExportButton } from "../components/charts";
 import {
   BackArrowIcon, InfoIcon, ChevronUpIcon, ChevronDownIcon, FilterIcon,
 } from "../components/ui/Icons";
@@ -116,6 +116,11 @@ function getClientPartnerPool(client = getDemoClientAccount()) {
     services: matchedServices.map((service) => service.name),
     baseTraffic,
   }];
+}
+
+function getDemoPartnerPool() {
+  const partner = ALL_PARTNERS.find((p) => p.name === "Tiot") || ALL_PARTNERS[0];
+  return partner ? [partner] : [];
 }
 
 function buildKpiData(range, filterScale = 1, partnerPool = ALL_PARTNERS) {
@@ -503,8 +508,13 @@ export default function PageOverview({
   const isAdmin = role === "admin";
   const isCAdmin = role === "c-admin";
   const isClient = role === "client";
+  const isPartner = role === "partner";
   const cAdminAccount = useMemo(() => getDemoCAdminAccount(), []);
   const clientAccount = useMemo(() => getDemoClientAccount(), []);
+  const partnerPartnerPool = useMemo(
+    () => (isPartner ? getDemoPartnerPool() : []),
+    [isPartner],
+  );
   const cAdminPartnerPool = useMemo(
     () => (isCAdmin ? getCAdminPartnerPool(cAdminAccount) : []),
     [isCAdmin, cAdminAccount],
@@ -517,8 +527,16 @@ export default function PageOverview({
     () => (isCAdmin ? getCAdminServicePool(cAdminAccount) : []),
     [isCAdmin, cAdminAccount],
   );
-  const scopedPartnerPool = isCAdmin ? cAdminPartnerPool : isClient ? clientPartnerPool : ALL_PARTNERS;
-  const scopedServiceNames = isClient
+  const scopedPartnerPool = isCAdmin
+    ? cAdminPartnerPool
+    : isClient
+      ? clientPartnerPool
+      : isPartner
+        ? partnerPartnerPool
+        : ALL_PARTNERS;
+  const scopedServiceNames = isPartner
+    ? partnerPartnerPool.flatMap((partner) => partner.services || [])
+    : isClient
     ? clientPartnerPool.flatMap((partner) => partner.services || [])
     : cAdminServicePool.map((service) => service.name);
   const [modal,       setModal]       = useState(null);
@@ -663,7 +681,7 @@ export default function PageOverview({
           title={isCAdmin ? "Assigned Clients by Traffic" : "Partners by Traffic"} />
       ) : (
         <ServicesTrafficChart days={1} onServiceFilter={handleBarFilter}
-          partnerServices={scopedServiceNames}
+          partnerServices={isPartner ? undefined : scopedServiceNames}
           initialName={filterType === "service" ? initialFilter : null} />
       )}
 
@@ -689,6 +707,16 @@ export default function PageOverview({
               <div className="ov2-card-title">Transaction Volume</div>
               <div className="ov2-card-sub">{RANGE_LABELS[rangeTab]}</div>
             </div>
+            <ChartExportButton
+              title={`Transaction Volume ${rangeTab}`}
+              data={chartData}
+              fields={[
+                { key: "d", label: "Period" },
+                { key: "clean", label: "Clean" },
+                { key: "blocked", label: "Blocked" },
+                { key: "visits", label: "Visits" },
+              ]}
+            />
             <div className="ov2-series-btns">
               {[
                 { key: "clean",   label: "Clean",   color: "#22c55e" },
@@ -737,12 +765,29 @@ export default function PageOverview({
                 <div className="ov2-card-title">Hourly Density</div>
                 <div className="ov2-card-sub">Transactions by hour</div>
               </div>
+              <ChartExportButton
+                title="Hourly Density"
+                data={hourlyData}
+                fields={[
+                  { key: "h", label: "Hour" },
+                  { key: "value", label: "Transactions" },
+                ]}
+              />
             </div>
             <HeatmapBar data={hourlyData} />
           </Card>
           <Card>
             <div className="ov2-card-header">
               <div className="ov2-card-title">Fraud Score</div>
+              <ChartExportButton
+                title="Fraud Score"
+                data={[fraudScore]}
+                fields={[
+                  { key: "clean", label: "Clean" },
+                  { key: "suspect", label: "Suspect" },
+                  { key: "blocked", label: "Blocked" },
+                ]}
+              />
             </div>
             <ScoreGauge clean={fraudScore.clean} suspect={fraudScore.suspect} blocked={fraudScore.blocked} />
           </Card>
@@ -769,6 +814,15 @@ export default function PageOverview({
             <div className="ov2-card-header">
               <div className="ov2-card-title">Channels</div>
               <span className="ov2-card-sub">Click-through rate by source</span>
+              <ChartExportButton
+                title="Channels"
+                data={channelData}
+                fields={[
+                  { key: "name", label: "Channel" },
+                  { key: "clicks", label: "Clicks" },
+                  { key: "visits", label: "Visits" },
+                ]}
+              />
             </div>
             <ChannelRows data={channelData} filterScale={filterScale} onOpen={open} />
           </Card>
@@ -776,6 +830,15 @@ export default function PageOverview({
             <div className="ov2-card-header">
               <div className="ov2-card-title">Block Reasons</div>
               <span className="ov2-card-sub">This week</span>
+              <ChartExportButton
+                title="Block Reasons"
+                data={blockReasonsData}
+                fields={[
+                  { key: "name", label: "Reason" },
+                  { key: "value", label: "Share %" },
+                  { key: "raw", label: "Count" },
+                ]}
+              />
             </div>
             <BlockDonut data={blockReasonsData} filterScale={filterScale} partnerPool={scopedPartnerPool} />
           </Card>

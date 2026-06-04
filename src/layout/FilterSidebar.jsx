@@ -24,6 +24,12 @@ const STATIC_FILTER_DATA = {
   customVar: ["Variable 1", "Variable 2", "Variable 3"],
 };
 
+const PRESENTATION_ROLES = [
+  { key: "admin", label: "Admin" },
+  { key: "partner", label: "Partner" },
+  { key: "c-admin", label: "C-Admin" },
+];
+
 function SelectFilter({ label, value, options, onChange }) {
   return (
     <div className="fsb-field">
@@ -47,6 +53,7 @@ export default function FilterSidebar({
   onApplyFilters,
   onResetFilters,
 }) {
+  const isAdminView = role === "admin" || role === "c-admin";
   const [fromDate, setFromDate] = useState(filters.fromDate ?? DEFAULT_FILTERS.fromDate);
   const [toDate, setToDate] = useState(filters.toDate ?? DEFAULT_FILTERS.toDate);
   const [search, setSearch] = useState(filters.search ?? "");
@@ -75,25 +82,25 @@ export default function FilterSidebar({
 
   const filterFields = useMemo(
     () => ([
-      { key: "service", label: role === "admin" ? "Choose Partner" : "Choose Service" },
+      { key: "service", label: isAdminView ? "Choose Partner" : "Choose Service" },
       { key: "network", label: "Choose Network" },
       { key: "os", label: "Choose OS" },
       { key: "platform", label: "Choose Platform" },
       { key: "googleType", label: "Choose Google/Non-Google" },
       { key: "customVar", label: "Custom Variables" },
     ]),
-    [role],
+    [isAdminView],
   );
 
   const filterData = useMemo(
     () => ({
       ...STATIC_FILTER_DATA,
       service:
-        role === "admin"
+        isAdminView
           ? ALL_PARTNERS.map((p) => p.name)
           : ALL_SERVICES.map((s) => s.name),
     }),
-    [role],
+    [isAdminView],
   );
 
   function buildFiltersPayload() {
@@ -181,17 +188,20 @@ export default function FilterSidebar({
         <div className="fsb-field">
           <label className="fsb-label-lg">View As</label>
           <div className="fsb-role-toggle">
-            {["admin", "partner"].map((r) => (
+            {PRESENTATION_ROLES.map((r) => (
               <button
                 type="button"
-                key={r}
-                className={`fsb-role-btn${role === r ? " active" : ""}`}
+                key={r.key}
+                className={`fsb-role-btn${role === r.key ? " active" : ""}`}
                 onClick={() => {
-                  if (setRole) setRole(r);
-                  if (setPage) setPage("overview");
+                  if (setRole) {
+                    setRole(r.key);
+                  } else if (setPage) {
+                    setPage("overview", r.key);
+                  }
                 }}
               >
-                {r === "admin" ? "Admin" : "Partner"}
+                {r.label}
               </button>
             ))}
           </div>

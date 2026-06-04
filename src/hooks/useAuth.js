@@ -7,9 +7,9 @@
  * and useEffect logic now lives here.
  *
  * Returns:
- *   auth            string|null  — current role ('admin'|'partner') or null
- *   role            string       — 'admin' | 'partner'
- *   userType        string       — 'Admin' | 'Client Partner'
+ *   auth            string|null  — current role ('admin'|'partner'|'client'|'c-admin') or null
+ *   role            string       — 'admin' | 'partner' | 'client' | 'c-admin'
+ *   userType        string       — 'Admin' | 'Client Partner' | 'Client' | 'C-Admin'
  *   showLogout      bool         — whether the logout confirmation screen is showing
  *   handleLogin     fn(role)     — call on successful login
  *   handleSetRole   fn(role)     — switch role (admin ↔ partner) from sidebar
@@ -79,6 +79,7 @@ export function useAuth() {
   const handleSetRole = (r) => {
     setRole(r);
     setUserType(getUserTypeForRole(r));
+    setAuth(r);
     saveSession(r);
   };
 

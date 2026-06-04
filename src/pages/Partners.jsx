@@ -4,6 +4,7 @@ import {
   XAxis, YAxis, Tooltip,
 } from "recharts";
 import { Card, SectionTitle } from "../components/ui";
+import { ChartExportButton } from "../components/charts";
 import {
   BLUE, GREEN, AMBER, ROSE,
   statusBg, statusText,
@@ -774,7 +775,10 @@ function ManageTab({ partners, setPartners, onAddClick, partnerAlerts, setPartne
       {/* Charts */}
       <div className="g-split2 mb-section">
         <Card>
-          <SectionTitle>Partner Growth</SectionTitle>
+          <div className="toolbar">
+            <SectionTitle>Partner Growth</SectionTitle>
+            <ChartExportButton title="Partner Growth" data={TREND_DATA} />
+          </div>
           <ResponsiveContainer width="100%" height={160}>
             <AreaChart data={TREND_DATA} margin={{top:4,right:8,bottom:0,left:-20}}>
               <defs>
@@ -791,7 +795,17 @@ function ManageTab({ partners, setPartners, onAddClick, partnerAlerts, setPartne
           </ResponsiveContainer>
         </Card>
         <Card>
-          <SectionTitle>By Status</SectionTitle>
+          <div className="toolbar">
+            <SectionTitle>By Status</SectionTitle>
+            <ChartExportButton
+              title="Partners by Status"
+              data={[
+                { status: "Active", count: active, pct: Math.round(active / total * 100) },
+                { status: "Needs Attention", count: needsattention, pct: Math.round(needsattention / total * 100) },
+                { status: "Inactive", count: inactive, pct: Math.round(inactive / total * 100) },
+              ]}
+            />
+          </div>
           <div className="f-col-10 manage-status-col">
             {[
               {label:"Active",         count:active,   color:GREEN,pct:Math.round(active/total*100)},

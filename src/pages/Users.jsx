@@ -13,6 +13,7 @@ import {
   Cell,
 } from "recharts";
 import { Card, SectionTitle, Badge } from "../components/ui";
+import { ChartExportButton } from "../components/charts";
 import {
   BLUE,
   GREEN,
@@ -1484,7 +1485,10 @@ export default function PageUsers({ role = "admin", setPage }) {
 
       <div className="g-split2 mb-section">
         <Card>
-          <SectionTitle>Login &amp; Action Activity</SectionTitle>
+          <div className="toolbar">
+            <SectionTitle>Login &amp; Action Activity</SectionTitle>
+            <ChartExportButton title="Login and Action Activity" data={repTrend} />
+          </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={repTrend}>
               <XAxis dataKey="d" />
@@ -1501,7 +1505,17 @@ export default function PageUsers({ role = "admin", setPage }) {
           </ResponsiveContainer>
         </Card>
         <Card>
-          <SectionTitle>Users by Type</SectionTitle>
+          <div className="toolbar">
+            <SectionTitle>Users by Type</SectionTitle>
+            <ChartExportButton
+              title="Users by Type"
+              data={TYPE_COUNTS}
+              fields={[
+                { key: "label", label: "Type" },
+                { key: "count", label: "Count" },
+              ]}
+            />
+          </div>
           <div className="f-gap-14">
             <div className="p-rel-sh">
               <PieChart width={110} height={110}>

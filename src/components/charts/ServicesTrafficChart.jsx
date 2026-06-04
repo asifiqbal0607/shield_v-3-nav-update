@@ -14,6 +14,7 @@ import { Card, SectionTitle } from "../../components/ui";
 import { PALETTE } from "../../components/constants/colors";
 import { ALL_SERVICES } from "../../models/services";
 import { buildServiceData, fmt } from "../../services/trafficService";
+import ChartExportButton from "./ChartExportButton";
 
 function DeltaBadge({ value }) {
   if (value === 0) return <span className="svc-tt-delta neutral">→ 0%</span>;
@@ -25,7 +26,7 @@ function DeltaBadge({ value }) {
   );
 }
 
-function TooltipRow({ label, total, blocked, clean, blockRate, muted, badge }) {
+function TooltipRow({ label, total, blocked, suspect, clean, blockRate, suspectRate, cleanRate, muted, badge }) {
   return (
     <div className={`tt-row${muted ? " tt-row--muted" : ""}`}>
       <div className="tt-row-head">
@@ -43,6 +44,14 @@ function TooltipRow({ label, total, blocked, clean, blockRate, muted, badge }) {
         </div>
         <span className="tt-row-pct">({(blockRate * 100).toFixed(1)}%)</span>
       </div>
+      <div className="tt-row-suspect-metric">
+        <div className="tt-row-metric-inner">
+          <span className="tt-row-dot tt-row-dot--suspect" />
+          <span className="tt-row-suspect-val">{fmt(suspect)}</span>
+          <span className="tt-row-metric-label">Suspect</span>
+        </div>
+        <span className="tt-row-pct">({(suspectRate * 100).toFixed(1)}%)</span>
+      </div>
       <div className="tt-row-clean-metric">
         <div className="tt-row-metric-inner">
           <span className="tt-row-dot tt-row-dot--clean" />
@@ -50,12 +59,17 @@ function TooltipRow({ label, total, blocked, clean, blockRate, muted, badge }) {
           <span className="tt-row-metric-label">Clear</span>
         </div>
         <span className="tt-row-pct">
-          ({((1 - blockRate) * 100).toFixed(1)}%)
+          ({(cleanRate * 100).toFixed(1)}%)
         </span>
       </div>
       <div className="tt-progress">
         <div
           className="tt-progress-blocked"
+          style={{ width: `${Math.max(blockRate * 100, blocked ? 2 : 0)}%` }}
+        />
+        <div
+          className="tt-progress-suspect"
+          style={{ width: `${Math.max(suspectRate * 100, suspect ? 2 : 0)}%` }}
         />
         <div className="tt-progress-clean" />
       </div>
@@ -82,16 +96,22 @@ function CustomTooltip({ active, payload, days }) {
           label={todayLabel}
           total={d.traffic}
           blocked={d.blocked}
+          suspect={d.suspect}
           clean={d.clean}
           blockRate={d.blockRate}
+          suspectRate={d.suspectRate}
+          cleanRate={d.cleanRate}
         />
         <div className="tt-divider" />
         <TooltipRow
           label={prevLabel}
           total={d.prevTotal}
           blocked={d.prevBlocked}
+          suspect={d.prevSuspect}
           clean={d.prevClean}
           blockRate={d.prevBlockRate}
+          suspectRate={d.prevSuspectRate}
+          cleanRate={d.prevCleanRate}
           muted
           badge={<DeltaBadge value={d.blockDelta} />}
         />
@@ -248,6 +268,19 @@ export default function ServicesTrafficChart({
           )}
         </div>
         <div className="svc-chart-header-right">
+          <ChartExportButton
+            title={partnerServices?.length ? "My Services by Traffic" : "Top Services by Traffic"}
+            data={pageData}
+            fields={[
+              { key: "name", label: "Service" },
+              { key: "traffic", label: "Traffic" },
+              { key: "blocked", label: "Blocked" },
+              { key: "suspect", label: "Suspect" },
+              { key: "clean", label: "Clear" },
+              { key: "blockRate", label: "Block Rate" },
+              { key: "trafficDelta", label: "Traffic Delta %" },
+            ]}
+          />
           <span className="svc-chart-hint">
             {selected
               ? "Click same bar to clear"

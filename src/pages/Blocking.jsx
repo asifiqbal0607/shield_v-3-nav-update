@@ -10,7 +10,7 @@ import {
 } from "recharts";
 
 import { Card, SectionTitle, Badge } from "../components/ui";
-import { BlockRadarChart, ChartTooltip } from "../components/charts";
+import { BlockRadarChart, ChartExportButton, ChartTooltip } from "../components/charts";
 import { TransactionsModal } from "../components/modals";
 import {
   ROSE,
@@ -85,7 +85,20 @@ export default function PageBlocking() {
         </Card>
 
         <Card>
-          <SectionTitle>Volume by Reason</SectionTitle>
+          <div className="toolbar">
+            <SectionTitle>Volume by Reason</SectionTitle>
+            <ChartExportButton
+              title="Volume by Reason"
+              data={blkRows}
+              fields={[
+                { key: "reason", label: "Reason" },
+                { key: "count", label: "Count" },
+                { key: "pct", label: "Share %" },
+                { key: "trend", label: "Trend" },
+                { key: "sev", label: "Severity" },
+              ]}
+            />
+          </div>
           <ResponsiveContainer width="100%" height={210}>
             <BarChart data={blkRows} layout="vertical" margin={CHART_MARGIN_0}>
               <XAxis

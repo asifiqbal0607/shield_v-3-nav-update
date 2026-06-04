@@ -14,6 +14,7 @@ import {
   Area,
 } from "recharts";
 import { Card, SectionTitle, Badge } from "../components/ui";
+import { ChartExportButton } from "../components/charts";
 import {
   PALETTE,
   GREEN,
@@ -636,6 +637,20 @@ function SummaryChart({ services, days, isAdmin }) {
   }, [services, days, isAdmin]);
 
   return (
+    <>
+    <div className="toolbar">
+      <span />
+      <ChartExportButton
+        title={isAdmin ? "Top Partners Clean vs Blocked" : "Top Services Clean vs Blocked"}
+        data={data}
+        fields={[
+          { key: "name", label: isAdmin ? "Partner" : "Service" },
+          { key: "total", label: "Total" },
+          { key: "clean", label: "Clean" },
+          { key: "blocked", label: "Blocked" },
+        ]}
+      />
+    </div>
     <ResponsiveContainer width="100%" height={200}>
       <BarChart
         data={data}
@@ -685,6 +700,7 @@ function SummaryChart({ services, days, isAdmin }) {
         </Bar>
       </BarChart>
     </ResponsiveContainer>
+    </>
   );
 }
 

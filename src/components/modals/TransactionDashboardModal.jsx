@@ -13,6 +13,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import { ChartExportButton } from "../charts";
 
 const BLUE = "#1d4ed8";
 const GREEN = "#22c55e";
@@ -150,9 +151,12 @@ export default function TransactionDashboardModal({
 
           {/* ── Trend line ── */}
           <div className="tdm-card">
+            <div className="toolbar">
             <SectionHead colorClass="tdd-bar-blue">
               Transaction Trend — Last 14 Days
             </SectionHead>
+            <ChartExportButton title={`${title} Transaction Trend`} data={data.trend} />
+            </div>
             <ResponsiveContainer width="100%" height={200}>
               <LineChart
                 data={data.trend}
@@ -215,9 +219,12 @@ export default function TransactionDashboardModal({
           {/* ── Hourly volume + by-network pie ── */}
           <div className="tdm-charts-row">
             <div className="tdm-card">
+              <div className="toolbar">
               <SectionHead colorClass="tdd-bar-amber">
                 Transactions by Hour
               </SectionHead>
+              <ChartExportButton title={`${title} Transactions by Hour`} data={data.byHour} />
+              </div>
               <ResponsiveContainer width="100%" height={180}>
                 <BarChart
                   data={data.byHour}
@@ -254,7 +261,10 @@ export default function TransactionDashboardModal({
             </div>
 
             <div className="tdm-card">
+              <div className="toolbar">
               <SectionHead colorClass="tdd-bar-cyan">By Network</SectionHead>
+              <ChartExportButton title={`${title} By Network`} data={data.byNetwork} />
+              </div>
               <div className="tdm-network-wrap">
                 <PieChart width={120} height={120}>
                   <Pie
@@ -290,9 +300,12 @@ export default function TransactionDashboardModal({
 
           {/* ── Block reasons bar ── */}
           <div className="tdm-card">
+            <div className="toolbar">
             <SectionHead colorClass="tdd-bar-rose">
               Block Reason Distribution
             </SectionHead>
+            <ChartExportButton title={`${title} Block Reason Distribution`} data={data.byReason} />
+            </div>
             <div className="tdm-reason-grid">
               {data.byReason.map((r, i) => (
                 <div

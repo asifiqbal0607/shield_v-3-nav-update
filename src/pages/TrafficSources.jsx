@@ -7,6 +7,7 @@ import {
   XAxis, YAxis, Tooltip,
 } from "recharts";
 import { TrafficIcon, InfoIcon } from "../components/ui/Icons";
+import { ChartExportButton } from "../components/charts";
 import { transactionRows } from "../data/tables";
 import { ALL_PARTNERS } from "../models/partners";
 
@@ -578,7 +579,20 @@ export default function Trafficsources({ role = "admin" }) {
 
             <div className="g-split2 mb-section">
               <div className="ts-chart-card">
-                <div className="ts-chart-title">Clicks by Source</div>
+                <div className="toolbar">
+                  <div className="ts-chart-title">Clicks by Source</div>
+                  <ChartExportButton
+                    title="Clicks by Source"
+                    data={sources}
+                    fields={[
+                      { key: "name", label: "Source" },
+                      { key: "visits", label: "Visits" },
+                      { key: "clicks", label: "Clicks" },
+                      { key: "blocked", label: "Blocked" },
+                      { key: "convRate", label: "Clear Rate %" },
+                    ]}
+                  />
+                </div>
                 <ResponsiveContainer width="100%" height={220}>
                   <BarChart data={sources} margin={{ top:4, right:8, bottom:0, left:-10 }}>
                     <XAxis dataKey="name" tick={{ ...CHART_TICK, fontSize:9 }} axisLine={false} tickLine={false}
@@ -594,7 +608,19 @@ export default function Trafficsources({ role = "admin" }) {
               </div>
 
               <div className="ts-chart-card">
-                <div className="ts-chart-title">Traffic Share</div>
+                <div className="toolbar">
+                  <div className="ts-chart-title">Traffic Share</div>
+                  <ChartExportButton
+                    title="Traffic Share"
+                    data={sources}
+                    fields={[
+                      { key: "name", label: "Source" },
+                      { key: "trafficShare", label: "Traffic Share %" },
+                      { key: "visits", label: "Visits" },
+                      { key: "clicks", label: "Clicks" },
+                    ]}
+                  />
+                </div>
                 <div className="ts-rev-share-wrap">
                   <PieChart width={130} height={130}>
                     <Pie data={sources} cx="50%" cy="50%" innerRadius={36} outerRadius={60}
@@ -688,7 +714,10 @@ export default function Trafficsources({ role = "admin" }) {
             </div>
 
             <div className="ts-trends-chart-card">
-              <div className="ts-chart-title">Click Volume by Source</div>
+              <div className="toolbar">
+                <div className="ts-chart-title">Click Volume by Source</div>
+                <ChartExportButton title="Click Volume by Source" data={trendData} />
+              </div>
               <ResponsiveContainer width="100%" height={260}>
                 <AreaChart data={trendData} margin={{ top:4, right:8, bottom:0, left:-10 }}>
                   <defs>
@@ -715,7 +744,10 @@ export default function Trafficsources({ role = "admin" }) {
             </div>
 
             <div className="ts-trends-conv-card">
-              <div className="ts-chart-title">Clear Rate Trend</div>
+              <div className="toolbar">
+                <div className="ts-chart-title">Clear Rate Trend</div>
+                <ChartExportButton title="Clear Rate Trend" data={convData} />
+              </div>
               <div className="ts-trends-conv-sub">% of source visits allowed by Shield</div>
               <ResponsiveContainer width="100%" height={220}>
                 <AreaChart data={convData} margin={{ top:4, right:8, bottom:0, left:-10 }}>

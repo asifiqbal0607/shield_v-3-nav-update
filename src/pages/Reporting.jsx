@@ -11,6 +11,7 @@ import {
   Cell,
 } from "recharts";
 import { Card, SectionTitle, Badge } from "../components/ui";
+import { ChartExportButton } from "../components/charts";
 import { GREEN, AMBER, VIOLET, CYAN } from "../components/constants/colors";
 import {
   CloseIcon,
@@ -822,7 +823,10 @@ export default function PageReporting({ role = "admin" }) {
       {/* Charts */}
       <div className="grid-2 mb-24">
         <Card>
-          <SectionTitle>30-Day Reporting Trends</SectionTitle>
+          <div className="toolbar">
+            <SectionTitle>30-Day Reporting Trends</SectionTitle>
+            <ChartExportButton title="30-Day Reporting Trends" data={repTrend} />
+          </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={repTrend}>
               <XAxis dataKey="d" />
@@ -847,7 +851,16 @@ export default function PageReporting({ role = "admin" }) {
           </ResponsiveContainer>
         </Card>
         <Card>
-          <SectionTitle>Report Type Split</SectionTitle>
+          <div className="toolbar">
+            <SectionTitle>Report Type Split</SectionTitle>
+            <ChartExportButton
+              title="Report Type Split"
+              data={[
+                { type: "Monthly", count: scopedReports.filter((r) => r.freq !== "Manual").length },
+                { type: "On-demand", count: scopedReports.filter((r) => r.freq === "Manual").length },
+              ]}
+            />
+          </div>
           <div className="rep-summary-row">
             <div className="rep-donut-wrap">
               <PieChart width={160} height={160}>
