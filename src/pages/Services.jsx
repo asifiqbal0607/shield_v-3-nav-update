@@ -4411,7 +4411,7 @@ export default function PageServices({ role = "admin", setPage }) {
     ? buildPartnerApiCallData(filteredServices)
     : API_CALL_DATA;
   const apiCallChartColors = isPartner ? PARTNER_API_BAR_COLORS : BAR_COLORS;
-  const apiCallChartTitle = isPartner ? "API Calls by Type" : "API Calls by Service";
+  const apiCallChartTitle = "API Calls by Service";
 
   const SUMMARY_STATS = [
     { label: "Total Services",  value: filteredServices.length, color: "#2563eb", filter: "all"      },

@@ -13758,8 +13758,16 @@ table tbody td {
 /* Report type grid */
 .nr-type-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 10px;
+}
+
+.nr-type-card {
+  grid-column: span 2;
+}
+
+.nr-type-grid:has(.nr-type-card:nth-child(5):last-child) .nr-type-card:nth-child(n + 4) {
+  grid-column: span 3;
 }
 
 .nr-type-card {
@@ -13974,7 +13982,7 @@ table tbody td {
 /* Format grid */
 .nr-format-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
 

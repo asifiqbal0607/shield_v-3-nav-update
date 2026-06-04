@@ -43,45 +43,39 @@ const SUMMARY_STATS = (reports) => [
 
 const REPORT_TYPES = [
   {
-    id: "traffic",
-    label: "Traffic Overview",
-    icon: "📈",
-    desc: "Visits, clicks and blocked traffic",
+    id: "apk",
+    label: "APK Health Report",
+    icon: "\u{1F4F1}",
+    desc: "APK performance and health status",
   },
   {
     id: "block",
     label: "Block Summary",
-    icon: "🚫",
+    icon: "\u{1F6AB}",
     desc: "Fraud block reasons and counts",
   },
   {
-    id: "apk",
-    label: "APK Health Report",
-    icon: "📱",
-    desc: "APK performance and health status",
+    id: "google",
+    label: "Google Overview",
+    icon: "\u{1F50D}",
+    desc: "Google traffic and performance",
   },
   {
-    id: "fraud",
-    label: "Fraud Detection Log",
-    icon: "🛡️",
-    desc: "Detailed fraud event log",
+    id: "non-google",
+    label: "Non-Google Overview",
+    icon: "\u{1F310}",
+    desc: "Non-Google traffic and performance",
   },
   {
-    id: "geo",
-    label: "Geo Distribution",
-    icon: "🌐",
-    desc: "Traffic breakdown by country",
-  },
-  {
-    id: "partner",
-    label: "Partner Performance",
-    icon: "🤝",
-    desc: "Per-partner stats and conversion",
+    id: "traffic",
+    label: "Traffic Overview",
+    icon: "\u{1F4C8}",
+    desc: "Visits, clicks and blocked traffic",
   },
 ];
 
 const FREQUENCIES = ["One-time"];
-const FORMATS = ["CSV", "Excel (XLSX)", "PDF", "JSON"];
+const FORMATS = ["CSV", "Excel (XLSX)", "PDF"];
 const PARTNERS = [
   "All Partners",
   "Vodacom",
