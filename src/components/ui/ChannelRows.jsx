@@ -13,7 +13,7 @@ export default function ChannelRows({ data, filterScale, onOpen }) {
               <span className="ov2-ch-name">{c.name}</span>
             </div>
             <div className="ov2-ch-bar-wrap">
-              <div className="ov2-ch-bar" />
+              <div className="ov2-ch-bar" style={{ "--w": `${barPct}%` }} />
             </div>
             <div className="ov2-ch-stats">
               <span className="ov2-ch-ctr">{ctr}% CTR</span>

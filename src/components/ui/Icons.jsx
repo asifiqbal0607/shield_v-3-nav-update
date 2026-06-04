@@ -47,6 +47,7 @@ import {
   Save,
   ArrowLeft,
   Pencil,
+  Maximize2,
 } from "lucide-react";
 
 // ── Wrapper to pass size consistently ────────────────────────────────────────
@@ -78,6 +79,7 @@ export const FileTextIcon     = ({ size = 14 }) => <FileText      size={size} />
 export const SaveIcon         = ({ size = 14 }) => <Save          size={size} />;
 export const ArrowLeftIcon    = ({ size = 13 }) => <ArrowLeft     size={size} />;
 export const EditIcon         = ({ size = 14 }) => <Pencil        size={size} />;
+export const MaximizeIcon     = ({ size = 14 }) => <Maximize2     size={size} />;
 
 // ── Nav icons ─────────────────────────────────────────────────────────────────
 export const DashboardIcon  = ({ size = 16 }) => <LayoutDashboard size={size} />;

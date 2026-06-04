@@ -11,7 +11,6 @@ import {
   Cell,
 } from "recharts";
 import { Card, SectionTitle, Badge } from "../components/ui";
-import { ChartExportButton } from "../components/charts";
 import { GREEN, AMBER, VIOLET, CYAN } from "../components/constants/colors";
 import {
   CloseIcon,
@@ -817,9 +816,13 @@ export default function PageReporting({ role = "admin" }) {
       {/* Charts */}
       <div className="grid-2 mb-24">
         <Card>
-          <div className="toolbar">
+          <div className="rep-chart-head">
             <SectionTitle>30-Day Reporting Trends</SectionTitle>
-            <ChartExportButton title="30-Day Reporting Trends" data={repTrend} />
+            <div className="rep-chart-note">
+              Shows 30-day traffic movement across visits, clicks, and blocked
+              activity. This view is intended to compare traffic patterns over
+              time, not the number of reports generated.
+            </div>
           </div>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={repTrend}>
@@ -847,13 +850,6 @@ export default function PageReporting({ role = "admin" }) {
         <Card>
           <div className="toolbar">
             <SectionTitle>Report Type Split</SectionTitle>
-            <ChartExportButton
-              title="Report Type Split"
-              data={[
-                { type: "Monthly", count: scopedReports.filter((r) => r.freq !== "Manual").length },
-                { type: "On-demand", count: scopedReports.filter((r) => r.freq === "Manual").length },
-              ]}
-            />
           </div>
           <div className="rep-summary-row">
             <div className="rep-donut-wrap">

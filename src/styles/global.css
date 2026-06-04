@@ -2869,6 +2869,18 @@ table tbody td {
   gap: 10px;
 }
 
+.rep-chart-head {
+  margin-bottom: 10px;
+}
+
+.rep-chart-note {
+  max-width: 620px;
+  margin-top: 5px;
+  color: var(--text-4);
+  font-size: var(--text-xs);
+  line-height: 1.45;
+}
+
 .rep-color-sq {
   width: 10px;
   height: 10px;
@@ -26447,6 +26459,11 @@ table tbody td {
   gap: 8px;
   margin-bottom: 14px;
 }
+.ov2-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .ov2-card-title {
   font-size: 13px;
   font-weight: 700;
@@ -26464,6 +26481,24 @@ table tbody td {
   gap: 5px;
   flex-wrap: wrap;
   align-items: center;
+}
+.ov2-chart-action-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d9e3f5;
+  border-radius: 8px;
+  background: #fff;
+  color: #466080;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+.ov2-chart-action-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  box-shadow: 0 6px 16px rgba(22, 82, 200, 0.12);
 }
 .ov2-series-btn {
   display: flex;
@@ -28337,4 +28372,78 @@ table tbody td {
   z-index: 181;
   overflow-y: auto;
   box-shadow: 4px 0 16px rgba(0,0,0,0.15);
+}
+
+.ov2-full-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2500;
+  background: rgba(8, 19, 35, 0.52);
+  backdrop-filter: blur(3px);
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ov2-full-panel {
+  width: min(1180px, calc(100vw - 36px));
+  height: min(760px, calc(100vh - 36px));
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 24px 80px rgba(15, 23, 42, 0.28);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.ov2-full-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 20px 12px;
+  border-bottom: 1px solid var(--border);
+}
+.ov2-full-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--text);
+}
+.ov2-full-sub {
+  margin-top: 3px;
+  font-size: 12px;
+  color: var(--text-4);
+}
+.ov2-full-body {
+  flex: 1;
+  min-height: 0;
+  padding: 18px 20px 20px;
+}
+.ov2-full-chart {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+}
+.ov2-full-chart--hourly {
+  display: flex;
+  align-items: center;
+}
+.ov2-full-chart--hourly .ov2-heatmap {
+  width: 100%;
+}
+.ov2-full-chart--hourly .ov2-heatmap-bars {
+  height: min(420px, 54vh);
+}
+.ov2-full-chart--gauge,
+.ov2-full-chart--donut,
+.ov2-full-chart--channels {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.ov2-full-chart--gauge .ov2-gauge-wrap {
+  width: min(560px, 100%);
+}
+.ov2-full-chart--donut .ov2-donut-wrap,
+.ov2-full-chart--channels .ov2-channels {
+  width: min(760px, 100%);
 }

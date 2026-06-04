@@ -10,7 +10,6 @@ import {
 } from "recharts";
 import { SLATE } from "../../components/constants/colors";
 import { blockReasons, blockLegend } from "../../data/charts";
-import ChartExportButton from "./ChartExportButton";
 
 // ─── Dark tooltip ─────────────────────────────────────────────────────────────
 function RadarTooltip({ active, payload, label }) {
@@ -110,17 +109,7 @@ export default function BlockRadarChart({
           <div className="brc-title">Weekly Block Pattern</div>
           <div className="brc-sub">Threat distribution by day of week</div>
         </div>
-        <div className="f-gap-8">
-          <ChartExportButton
-            title="Weekly Block Pattern"
-            data={data}
-            fields={[
-              { key: "subject", label: "Day" },
-              ...series.map((item) => ({ key: item.key, label: item.key })),
-            ]}
-          />
-          {showBadge && <div className="brc-day-badge">7-day view</div>}
-        </div>
+        {showBadge && <div className="brc-day-badge">7-day view</div>}
       </div>
 
       {/* ── Radar — no wrapper click, button below triggers modal ── */}
@@ -143,8 +132,9 @@ export default function BlockRadarChart({
             <PolarRadiusAxis
               angle={90}
               domain={[0, 5500]}
-              tick={{ fontSize: 9, fill: "#94a3b8" }}
+              tick={false}
               axisLine={false}
+              tickLine={false}
               tickCount={4}
             />
             <Tooltip content={<RadarTooltip />} />

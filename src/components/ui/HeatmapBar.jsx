@@ -47,6 +47,10 @@ export default function HeatmapBar({ data }) {
               )}
               <div
                 className="ov2-heatmap-bar"
+                style={{
+                  "--h": `${Math.max(16, Math.round(pct * 100))}%`,
+                  "--o": Math.min(0.95, 0.35 + pct * 0.55),
+                }}
               />
             </div>
           );

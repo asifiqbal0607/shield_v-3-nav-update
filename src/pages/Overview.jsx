@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   AreaChart, Area, LineChart, Line,
   XAxis, YAxis, Tooltip,
@@ -10,6 +11,7 @@ import { TransactionsModal } from "../components/modals";
 import { BlockRadarChart, ChartExportButton } from "../components/charts";
 import {
   BackArrowIcon, InfoIcon, ChevronUpIcon, ChevronDownIcon, FilterIcon,
+  MaximizeIcon, CloseIcon,
 } from "../components/ui/Icons";
 import { ScoreGauge, HeatmapBar, ChannelRows } from "../components/ui";
 import { histogramData, blockReasons, blockLegend } from "../data/charts";
@@ -438,6 +440,63 @@ function BlockDonut({ data, filterScale, partnerPool = ALL_PARTNERS }) {
 }
 
 // ── Cap Limit Banner (partner view only) ─────────────────────────────────────
+function ChartExpandButton({ title, onClick }) {
+  return (
+    <button
+      type="button"
+      className="ov2-chart-action-btn"
+      title={`View ${title} full window`}
+      aria-label={`View ${title} full window`}
+      onClick={(e) => {
+        e.stopPropagation();
+        onClick();
+      }}
+    >
+      <MaximizeIcon size={13} />
+    </button>
+  );
+}
+
+function ChartFullWindowModal({ title, subtitle, onClose, children }) {
+  useEffect(() => {
+    const onKeyDown = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => document.removeEventListener("keydown", onKeyDown);
+  }, [onClose]);
+
+  return createPortal(
+    <div className="ov2-full-backdrop" onMouseDown={onClose}>
+      <div
+        className="ov2-full-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <div className="ov2-full-header">
+          <div>
+            <div className="ov2-full-title">{title}</div>
+            {subtitle && <div className="ov2-full-sub">{subtitle}</div>}
+          </div>
+          <button
+            type="button"
+            className="ov2-chart-action-btn"
+            title="Close full window"
+            aria-label="Close full window"
+            onClick={onClose}
+          >
+            <CloseIcon size={14} />
+          </button>
+        </div>
+        <div className="ov2-full-body">{children}</div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 function CapLimitBanner({ capLimit }) {
   if (!capLimit) return null;
 
@@ -543,9 +602,12 @@ export default function PageOverview({
   const [selectedBar, setSelectedBar] = useState(initialFilter ?? null);
   const [rangeTab,    setRangeTab]    = useState("7d");
   const [seriesVis,   setSeriesVis]   = useState({ clean: true, blocked: true, visits: true });
+  const [expandedChart, setExpandedChart] = useState(null);
 
   const open  = (title) => setModal(title);
   const close = () => setModal(null);
+  const openExpanded = (chartKey) => setExpandedChart(chartKey);
+  const closeExpanded = useCallback(() => setExpandedChart(null), []);
   const handleBarFilter = useCallback((name) => setSelectedBar(name), []);
 
   useEffect(() => {
@@ -639,6 +701,68 @@ export default function PageOverview({
   );
 
   const TICK = { fontSize: 9, fill: "#94a3b8" };
+  const expandedChartMeta = {
+    volume: { title: "Transaction Volume", subtitle: RANGE_LABELS[rangeTab] },
+    hourly: { title: "Hourly Density", subtitle: "Transactions by hour" },
+    fraud: { title: "Fraud Score", subtitle: "Clean, low-risk, and high-risk traffic" },
+    blockPattern: { title: "Block Pattern", subtitle: "Weekly threat distribution by day" },
+    channels: { title: "Channels", subtitle: "Click-through rate by source" },
+    blockReasons: { title: "Block Reasons", subtitle: "This week" },
+  };
+  const expandedMeta = expandedChart ? expandedChartMeta[expandedChart] : null;
+  const renderVolumeChart = (gradientSuffix = "card") => {
+    const gradients = [
+      [`ov2gC-${gradientSuffix}`, "#22c55e", 0.07, "clean"],
+      [`ov2gB-${gradientSuffix}`, "#ef4444", 0.15, "blocked"],
+      [`ov2gV-${gradientSuffix}`, "#3b82f6", 0.10, "visits"],
+    ];
+    const gradientByKey = Object.fromEntries(gradients.map(([id, , , key]) => [key, id]));
+    return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: -18 }}>
+        <defs>
+          {gradients.map(([id, col, op]) => (
+            <linearGradient key={id} id={id} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%"  stopColor={col} stopOpacity={op} />
+              <stop offset="95%" stopColor={col} stopOpacity={0}  />
+            </linearGradient>
+          ))}
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+        <XAxis dataKey="d" tick={TICK} axisLine={false} tickLine={false} height={18} />
+        <YAxis tick={TICK} axisLine={false} tickLine={false} width={34}
+          domain={[0, 'dataMax']}
+          tickFormatter={v => v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+        <Tooltip content={<AreaTip />} />
+        {seriesVis.visits  && <Area type="monotone" dataKey="visits"  name="Visits"  stroke="#3b82f6" strokeWidth={1.5} fill={`url(#${gradientByKey.visits})`} dot={false} />}
+        {seriesVis.clean   && <Area type="monotone" dataKey="clean"   name="Clean"   stroke="#22c55e" strokeWidth={2}   fill={`url(#${gradientByKey.clean})`} dot={false} />}
+        {seriesVis.blocked && <Area type="monotone" dataKey="blocked" name="Blocked" stroke="#ef4444" strokeWidth={2}   fill={`url(#${gradientByKey.blocked})`} dot={false} />}
+      </AreaChart>
+    </ResponsiveContainer>
+    );
+  };
+  const renderExpandedChart = () => {
+    switch (expandedChart) {
+      case "volume":
+        return <div className="ov2-full-chart ov2-full-chart--volume">{renderVolumeChart("full")}</div>;
+      case "hourly":
+        return <div className="ov2-full-chart ov2-full-chart--hourly"><HeatmapBar data={hourlyData} /></div>;
+      case "fraud":
+        return <div className="ov2-full-chart ov2-full-chart--gauge"><ScoreGauge clean={fraudScore.clean} suspect={fraudScore.suspect} blocked={fraudScore.blocked} /></div>;
+      case "blockPattern":
+        return (
+          <div className="ov2-full-chart ov2-full-chart--radar">
+            <BlockRadarChart height={520} showBadge={false} data={blockPatternData} onDayClick={(day) => open(`${day} Block Pattern - Transactions`)} />
+          </div>
+        );
+      case "channels":
+        return <div className="ov2-full-chart ov2-full-chart--channels"><ChannelRows data={channelData} filterScale={filterScale} onOpen={open} /></div>;
+      case "blockReasons":
+        return <div className="ov2-full-chart ov2-full-chart--donut"><BlockDonut data={blockReasonsData} filterScale={filterScale} partnerPool={scopedPartnerPool} /></div>;
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="ov2-page">
@@ -707,16 +831,6 @@ export default function PageOverview({
               <div className="ov2-card-title">Transaction Volume</div>
               <div className="ov2-card-sub">{RANGE_LABELS[rangeTab]}</div>
             </div>
-            <ChartExportButton
-              title={`Transaction Volume ${rangeTab}`}
-              data={chartData}
-              fields={[
-                { key: "d", label: "Period" },
-                { key: "clean", label: "Clean" },
-                { key: "blocked", label: "Blocked" },
-                { key: "visits", label: "Visits" },
-              ]}
-            />
             <div className="ov2-series-btns">
               {[
                 { key: "clean",   label: "Clean",   color: "#22c55e" },
@@ -731,6 +845,17 @@ export default function PageOverview({
                   {s.label}
                 </button>
               ))}
+              <ChartExportButton
+                title={`Transaction Volume ${rangeTab}`}
+                data={chartData}
+                fields={[
+                  { key: "d", label: "Period" },
+                  { key: "clean", label: "Clean" },
+                  { key: "blocked", label: "Blocked" },
+                  { key: "visits", label: "Visits" },
+                ]}
+              />
+              <ChartExpandButton title="Transaction Volume" onClick={() => openExpanded("volume")} />
             </div>
           </div>
           <div className="ov2-chart-click" onClick={() => open("Volume — Transactions")}>
@@ -765,29 +890,14 @@ export default function PageOverview({
                 <div className="ov2-card-title">Hourly Density</div>
                 <div className="ov2-card-sub">Transactions by hour</div>
               </div>
-              <ChartExportButton
-                title="Hourly Density"
-                data={hourlyData}
-                fields={[
-                  { key: "h", label: "Hour" },
-                  { key: "value", label: "Transactions" },
-                ]}
-              />
+              <ChartExpandButton title="Hourly Density" onClick={() => openExpanded("hourly")} />
             </div>
             <HeatmapBar data={hourlyData} />
           </Card>
           <Card>
             <div className="ov2-card-header">
               <div className="ov2-card-title">Fraud Score</div>
-              <ChartExportButton
-                title="Fraud Score"
-                data={[fraudScore]}
-                fields={[
-                  { key: "clean", label: "Clean" },
-                  { key: "suspect", label: "Suspect" },
-                  { key: "blocked", label: "Blocked" },
-                ]}
-              />
+              <ChartExpandButton title="Fraud Score" onClick={() => openExpanded("fraud")} />
             </div>
             <ScoreGauge clean={fraudScore.clean} suspect={fraudScore.suspect} blocked={fraudScore.blocked} />
           </Card>
@@ -802,7 +912,21 @@ export default function PageOverview({
               <div className="ov2-card-title">Block Pattern</div>
               <div className="ov2-card-sub">Weekly threat distribution by day</div>
             </div>
-            <span className="ov2-radar-badge">7-day radar</span>
+            <div className="ov2-card-actions">
+              <span className="ov2-radar-badge">7-day radar</span>
+              <ChartExportButton
+                title="Weekly Block Pattern"
+                data={blockPatternData}
+                fields={[
+                  { key: "subject", label: "Day" },
+                  ...blockLegend.slice(0, 5).map((item) => ({
+                    key: item.key,
+                    label: item.key,
+                  })),
+                ]}
+              />
+              <ChartExpandButton title="Block Pattern" onClick={() => openExpanded("blockPattern")} />
+            </div>
           </div>
           <BlockRadarChart height={320} showBadge={false}
             data={blockPatternData}
@@ -814,15 +938,7 @@ export default function PageOverview({
             <div className="ov2-card-header">
               <div className="ov2-card-title">Channels</div>
               <span className="ov2-card-sub">Click-through rate by source</span>
-              <ChartExportButton
-                title="Channels"
-                data={channelData}
-                fields={[
-                  { key: "name", label: "Channel" },
-                  { key: "clicks", label: "Clicks" },
-                  { key: "visits", label: "Visits" },
-                ]}
-              />
+              <ChartExpandButton title="Channels" onClick={() => openExpanded("channels")} />
             </div>
             <ChannelRows data={channelData} filterScale={filterScale} onOpen={open} />
           </Card>
@@ -830,15 +946,7 @@ export default function PageOverview({
             <div className="ov2-card-header">
               <div className="ov2-card-title">Block Reasons</div>
               <span className="ov2-card-sub">This week</span>
-              <ChartExportButton
-                title="Block Reasons"
-                data={blockReasonsData}
-                fields={[
-                  { key: "name", label: "Reason" },
-                  { key: "value", label: "Share %" },
-                  { key: "raw", label: "Count" },
-                ]}
-              />
+              <ChartExpandButton title="Block Reasons" onClick={() => openExpanded("blockReasons")} />
             </div>
             <BlockDonut data={blockReasonsData} filterScale={filterScale} partnerPool={scopedPartnerPool} />
           </Card>
@@ -846,6 +954,15 @@ export default function PageOverview({
       </div>
 
       {modal && <TransactionsModal title={modal} onClose={close} role={role} setPage={setPage} />}
+      {expandedMeta && (
+        <ChartFullWindowModal
+          title={expandedMeta.title}
+          subtitle={expandedMeta.subtitle}
+          onClose={closeExpanded}
+        >
+          {renderExpandedChart()}
+        </ChartFullWindowModal>
+      )}
     </div>
   );
 }
